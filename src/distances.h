@@ -1,8 +1,6 @@
 /**
  * @file distances.h
  * @brief Distance (L2 squared) kernel declarations
- * @author Akash Nayar <akashnay@andrew.cmu.edu>
- * @author Dhruva Byrapatna <dbyrapat@andrew.cmu.edu>
  * @date 11-18-2025
  */
 

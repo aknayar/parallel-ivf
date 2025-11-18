@@ -1,8 +1,6 @@
 /**
  * @file IVFSerial.h
  * @brief Serial implementation of IVF
- * @author Akash Nayar <akashnay@andrew.cmu.edu>
- * @author Dhruva Byrapatna <dbyrapat@andrew.cmu.edu>
  * @date 11-18-2025
  */
 
@@ -13,11 +11,11 @@
 
 struct IVFSerial : public IVF {
     IVFSerial(size_t d, size_t nlist) : IVF(d, nlist) {}
-    
-    void train(const size_t n_train, const float* train_data) override;
-    void add(const size_t n_add, const float* add_data) override;
-    void search(const size_t n_queries, const float* queries,
-                const size_t k, const size_t nprobe) const override;
+
+    void train(const size_t n_train, const float *train_data) override;
+    void add(const size_t n_add, const float *add_data) override;
+    void search(const size_t n_queries, const float *queries, const size_t k,
+                const size_t nprobe) const override;
 };
 
 #endif // IVF_SERIAL_H

@@ -85,13 +85,60 @@ void IVFBase::add(const size_t n_add, const float *add_data) {
 
 }
 
-void IVFBase::search(const size_t n_queries, const float *queries,
-                     const size_t k, const size_t nprobe) const {
+std::vector<std::vector<size_t>> IVFBase::search(const size_t n_queries, const float *queries,
+                     const size_t k, const size_t n_probe) const {
     // TODO: Implement
+    
+
+    // if (n_probe > nlist){
+
+    //     n_probe = nlist;
+    // }
+
+    std::vector<std::vector<size_t>> ret_labels;
+    ret_labels.resize(n_queries);
+
+    //for each query we want to 
+    // find the top nprobe centroid indices
+    // scan every vector in the corresponding ivf for similarity and rank
+    // reutnr the k closest indices
+    for(size_t i = 0; i < n_queries; i++){
+        const float* q = queries+ i * d;
+        auto bciVec = _top_n_centroids(q, n_probe); //get indices of nprobe closest centroids
+        size_t n_probe_clamped = bciVec.size();
+        std::priority_queue<std::pair<float,size_t>> pq;
+
+        for (size_t j =0; j < n_probe_clamped; j++){ //do the below for all centroids indices in bciVec (equal to nprobe)
+
+            auto ii = bciVec[j]; //our current centroid index (used to index into ivf)
+            auto &curr_list = inv_lists[ii]; 
+            auto num_vectors_in_list = curr_list.size() / d; //find number of vectors in list
+            auto curr_list_data = curr_list.data(); 
+            for (size_t vi = 0; vi < num_vectors_in_list; vi++){ //
+                const float* vec = curr_list_data+vi*d; //our current vector within curr_list
+                auto pq_distance = distance_scalar(q, vec, d) * -1.0; //get distance
+                auto label = labels[ii][vi]; //get label - find list with ii, find label w/in list with k
+                auto pair = std::make_pair(pq_distance,label); 
+                pq.push(pair);
+            }
+        }
+        size_t num_to_add = std::min(k, (size_t)pq.size());
+        for(size_t j = 0; j < num_to_add; j++){ //take the k closest vectors and put them on the right index in ret_vector
+            auto [_, index] = pq.top(); 
+            ret_labels[i].push_back(index);
+            pq.pop();
+        }
+
+    }
+
+
+    return ret_labels;
+
+
 }
 
 
-std::vector<size_t> IVFBase::_top_n_centroids(const float *vector, size_t n){
+std::vector<size_t> IVFBase::_top_n_centroids(const float *vector, size_t n) const{
 
     if (n > nlist){
         n = nlist;

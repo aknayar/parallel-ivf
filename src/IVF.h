@@ -26,7 +26,7 @@ struct IVF {
 
     virtual void add(const size_t n_add, const float *add_data) = 0;
 
-    virtual void search(const size_t n_queries, const float *queries,
+    virtual std::vector<std::vector<size_t>> search(const size_t n_queries, const float *queries,
                         const size_t k, const size_t nprobe) const = 0;
 };
 

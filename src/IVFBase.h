@@ -20,10 +20,10 @@ struct IVFBase : IVF {
         void train(const size_t n_train, const float *train_data) override;
         void build(const size_t n_train, const float *train_data) override;
         void add(const size_t n_add, const float *add_data) override;
-        void search(const size_t n_queries, const float *queries, const size_t k,
+        std::vector<std::vector<size_t>> search(const size_t n_queries, const float *queries, const size_t k,
                     const size_t nprobe) const override;
     private:
-        std::vector<size_t> _top_n_centroids(const float *vector, size_t n);
+        std::vector<size_t> _top_n_centroids(const float *vector, size_t n) const;
 };
 
 #endif // IVF_BASE_H

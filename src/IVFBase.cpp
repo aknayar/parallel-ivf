@@ -66,8 +66,23 @@ void IVFBase::build(const size_t n_train, const float *train_data){
 
 
 void IVFBase::add(const size_t n_add, const float *add_data) {
+    if (centroids.empty() || inv_lists.empty()){ //if we have not trained or not built, nothing should happen
+        return;
+    }
 
-    // TODO: Implement
+
+    for(size_t i = 0; i < n_add; i++){
+        const float* x = add_data + i * d;
+
+        auto bciVec = _top_n_centroids(x, 1);
+        auto bci = bciVec[0];
+        auto &list = inv_lists[bci];
+        list.insert(list.end(), x, x + d);
+
+        labels[bci].emplace_back(maxlabel+1);
+        maxlabel++;
+    }
+
 }
 
 void IVFBase::search(const size_t n_queries, const float *queries,

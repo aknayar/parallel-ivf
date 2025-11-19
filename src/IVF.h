@@ -12,7 +12,7 @@
 #include <vector>
 
 struct IVF {
-    size_t d, nlist, nprobe = 0;
+    size_t d, nlist, nprobe, maxlabel = 0;
     std::vector<std::vector<float>> inv_lists; // Inverted lists
     std::vector<std::vector<size_t>> labels;   // Associated labels
     std::vector<float> centroids;              // Centroids

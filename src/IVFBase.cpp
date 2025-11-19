@@ -29,7 +29,7 @@ void IVFBase::build(const size_t n_train, const float *train_data){
     for(size_t i = 0; i < n_train; i++){
 
         const float* x = train_data + i * d;
-        std::vector<float>curr_vector;
+        // std::vector<float>curr_vector;
         // for (size_t j = 0; j < d; j++){
         //     curr_vector.emplace_back(train_data[i*d+j]);
         // }
@@ -55,15 +55,24 @@ void IVFBase::build(const size_t n_train, const float *train_data){
         labels[bci].emplace_back(i);
          
     }
+    maxlabel = n_train-1;
 
 
 }
 
+
+
 void IVFBase::add(const size_t n_add, const float *add_data) {
+
     // TODO: Implement
 }
 
 void IVFBase::search(const size_t n_queries, const float *queries,
                      const size_t k, const size_t nprobe) const {
     // TODO: Implement
+}
+
+
+void IVFBase::_top_n_centroids(const float *vector){
+    
 }

@@ -7,7 +7,7 @@
 #include "IVFBase.h"
 
 void IVFBase::train(const size_t n_train, const float *train_data) {
-    kmeans.init_centroids(n_train, train_data, centroids.data());
+    kmeans.train(n_train, train_data, centroids.data());
 }
 
 void IVFBase::add(const size_t n_add, const float *add_data) {

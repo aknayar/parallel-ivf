@@ -14,6 +14,12 @@
 #define RANDOM_SEED 5
 
 template <DistanceKernel DistanceKernel>
+void KMeans<DistanceKernel>::train(size_t n, const float *data, float *centroids) {
+    init_centroids(n, data, centroids);
+    learn_centroids(n, data, centroids);
+}
+
+template <DistanceKernel DistanceKernel>
 void KMeans<DistanceKernel>::init_centroids(size_t n, const float *data,
                                     float *centroids) {
     // Following https://en.wikipedia.org/wiki/K-means%2B%2B
@@ -54,6 +60,65 @@ void KMeans<DistanceKernel>::init_centroids(size_t n, const float *data,
                 memcpy(centroids + num_clusters * d, point, point_bytes);
                 num_clusters++;
                 break;
+            }
+        }
+    }
+}
+
+template <DistanceKernel DistanceKernel>
+void KMeans<DistanceKernel>::learn_centroids(size_t n, const float *data,
+                                             float *centroids) {
+    std::vector<std::vector<size_t>> assignments(k);
+
+    bool converged = false;
+    while (!converged) {
+        // Clear assignments
+        for (size_t i = 0; i < k; i++) {
+            assignments[i].clear();
+        }
+
+        // Assign points to closest centroids
+        for (size_t i = 0; i < n; i++) {
+            const float *point = data + i * d;
+            size_t closest_centroid_idx = 0;
+            float min_distance = distance<DistanceKernel>(point, centroids, d);
+            for (size_t j = 0; j < k; j++) {
+                float curr_distance = distance<DistanceKernel>(point, centroids + j * d, d);
+                if (curr_distance < min_distance) {
+                    min_distance = curr_distance;
+                    closest_centroid_idx = j;
+                }
+            }
+            assignments[closest_centroid_idx].push_back(i);
+        }
+
+        // Update centroids
+        std::vector<float> new_centroids(k * d);
+        for (size_t i = 0; i < k; i++) {
+            const std::vector<size_t> &assignment = assignments[i];
+            if (assignment.empty()) {
+                continue;
+            }
+            float *centroid = new_centroids.data() + i * d;
+            for (size_t j = 0; j < d; j++) {
+                float sum = 0.0f;
+                for (size_t p : assignment) {
+                    sum += data[p * d + j];
+                }
+                centroid[j] = sum / assignment.size();
+            }
+        }
+
+        // Check convergence
+        bool converged = true;
+        for (size_t i = 0; i < k; i++) {
+            const float *centroid = centroids + i * d;
+            const float *new_centroid = new_centroids.data() + i * d;
+            for (size_t j = 0; j < d; j++) {
+                if (centroid[j] != new_centroid[j]) {
+                    converged = false;
+                    break;
+                }
             }
         }
     }

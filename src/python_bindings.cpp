@@ -90,39 +90,42 @@ PYBIND11_MODULE(parallel_ivf, m) {
              "  add_data: numpy array of shape (n_add, d)")
         
         .def("search", 
-             [](const IVFBase &self, py::array_t<float> queries, 
-                size_t k, size_t nprobe) {
-                 py::buffer_info buf = queries.request();
-                 
-                 if (buf.ndim != 2) {
-                     throw std::runtime_error("queries must be a 2D array");
-                 }
-                 
-                 size_t n_queries = buf.shape[0];
-                 size_t d = buf.shape[1];
-                 
-                 if (d != self.d) {
-                     throw std::runtime_error(
-                         "Dimension mismatch: expected " + std::to_string(self.d) + 
-                         " but got " + std::to_string(d));
-                 }
-                 
-                 if (nprobe > self.nlist) {
-                     throw std::runtime_error(
-                         "nprobe (" + std::to_string(nprobe) + 
-                         ") cannot be greater than nlist (" + std::to_string(self.nlist) + ")");
-                 }
-                 
-                 self.search(n_queries, static_cast<float*>(buf.ptr), k, nprobe);
-             },
-             py::arg("queries"),
-             py::arg("k"),
-             py::arg("nprobe"),
-             "Search for nearest neighbors\n\n"
-             "Parameters:\n"
-             "  queries: numpy array of shape (n_queries, d)\n"
-             "  k: number of nearest neighbors to return\n"
-             "  nprobe: number of lists to probe")
+     [](const IVFBase &self, py::array_t<float> queries, 
+        size_t k, size_t nprobe) {
+         py::buffer_info buf = queries.request();
+         
+         if (buf.ndim != 2) {
+             throw std::runtime_error("queries must be a 2D array");
+         }
+         
+         size_t n_queries = buf.shape[0];
+         size_t d = buf.shape[1];
+         
+         if (d != self.d) {
+             throw std::runtime_error(
+                 "Dimension mismatch: expected " + std::to_string(self.d) + 
+                 " but got " + std::to_string(d));
+         }
+         
+         if (nprobe > self.nlist) {
+             throw std::runtime_error(
+                 "nprobe (" + std::to_string(nprobe) + 
+                 ") cannot be greater than nlist (" + std::to_string(self.nlist) + ")");
+         }
+
+         // ⭐ FIX: Return the C++ vector<vector<size_t>> back to Python
+         return self.search(
+             n_queries, static_cast<float*>(buf.ptr), k, nprobe
+         );
+     },
+     py::arg("queries"),
+     py::arg("k"),
+     py::arg("nprobe"),
+     "Search for nearest neighbors\n\n"
+     "Parameters:\n"
+     "  queries: numpy array of shape (n_queries, d)\n"
+     "  k: number of nearest neighbors to return\n"
+     "  nprobe: number of lists to probe")
         
         .def("__repr__",
              [](const IVFBase &self) {

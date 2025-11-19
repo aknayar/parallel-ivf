@@ -108,6 +108,5 @@ def test_kmeans_unique_centroids():
             dist = np.linalg.norm(centroids[i] - centroids[j])
             assert dist > EPSILON, f"Centroids {i} and {j} are too close: {dist}"
 
-
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "-s"])

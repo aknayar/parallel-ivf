@@ -8,6 +8,7 @@
 #define IVF_H
 
 #include <cstddef>
+#include <iostream>
 #include <vector>
 
 struct IVF {

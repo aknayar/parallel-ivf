@@ -7,7 +7,8 @@
 #include "IVFBase.h"
 
 void IVFBase::train(const size_t n_train, const float *train_data) {
-    kmeans.train(n_train, train_data, centroids.data());
+    centroids.resize(nlist * d);
+    kmeans.train(n_train, train_data, centroids.data(), nlist);
 }
 
 void IVFBase::add(const size_t n_add, const float *add_data) {
@@ -15,6 +16,6 @@ void IVFBase::add(const size_t n_add, const float *add_data) {
 }
 
 void IVFBase::search(const size_t n_queries, const float *queries,
-                       const size_t k, const size_t nprobe) const {
+                     const size_t k, const size_t nprobe) const {
     // TODO: Implement
 }

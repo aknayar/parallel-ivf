@@ -23,7 +23,7 @@ struct IVFBase : IVF {
         void search(const size_t n_queries, const float *queries, const size_t k,
                     const size_t nprobe) const override;
     private:
-        void _top_n_centroids(const float *vector);
+        std::vector<size_t> _top_n_centroids(const float *vector, size_t n);
 };
 
 #endif // IVF_BASE_H

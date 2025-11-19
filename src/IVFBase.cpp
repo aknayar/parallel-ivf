@@ -6,6 +6,9 @@
 
 #include "IVFBase.h"
 #include <limits>
+#include <queue>
+#include <utility>
+
 
 void IVFBase::train(const size_t n_train, const float *train_data) {
     centroids.resize(nlist * d);
@@ -73,6 +76,35 @@ void IVFBase::search(const size_t n_queries, const float *queries,
 }
 
 
-void IVFBase::_top_n_centroids(const float *vector){
+std::vector<size_t> IVFBase::_top_n_centroids(const float *vector, size_t n){
+
+    if (n > nlist){
+        n = nlist;
+    }
+
+    std::vector<size_t> ret_vector;
     
+
+    std::priority_queue<std::pair<float,size_t>> pq;
+
+    const float* cent_data = centroids.data();
+
+    for(size_t c=0; c < nlist; c++){
+        const float* cent = cent_data + c*d;
+
+        auto pq_distance = distance_scalar(vector, cent, d) * -1.0;
+        auto pair = std::make_pair(pq_distance,c);
+        pq.push(pair);
+        
+    }
+
+
+    for(size_t i = 0; i < n; i++){
+        auto [_, index] = pq.top();
+        ret_vector.push_back(index);
+        pq.pop();
+    }
+    return ret_vector;
+
+
 }

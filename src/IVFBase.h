@@ -1,16 +1,20 @@
 /**
- * @file IVFSerial.h
- * @brief Serial implementation of IVF
+ * @file IVFBase.h
+ * @brief Base implementation of IVF
  * @date 11-18-2025
  */
 
-#ifndef IVF_SERIAL_H
-#define IVF_SERIAL_H
+#ifndef IVF_BASE_H
+#define IVF_BASE_H
 
 #include "IVF.h"
+#include "distances.h"
+#include "kmeans.h"
 
-struct IVFSerial : public IVF {
-    IVFSerial(size_t d, size_t nlist) : IVF(d, nlist) {}
+struct IVFBase : IVF {
+    KMeans<DistanceKernel::SCALAR> kmeans;
+
+    IVFBase(size_t d, size_t nlist) : IVF(d, nlist), kmeans(d, nlist) {}
 
     void train(const size_t n_train, const float *train_data) override;
     void add(const size_t n_add, const float *add_data) override;
@@ -18,4 +22,4 @@ struct IVFSerial : public IVF {
                 const size_t nprobe) const override;
 };
 
-#endif // IVF_SERIAL_H
+#endif // IVF_BASE_H

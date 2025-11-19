@@ -17,6 +17,7 @@ struct IVF {
     std::vector<float> centroids;              // Centroids
 
     IVF(size_t d, size_t nlist) : d(d), nlist(nlist) {}
+    virtual ~IVF() = default;
 
     virtual void train(const size_t n_train, const float *train_data) = 0;
 

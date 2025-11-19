@@ -12,14 +12,17 @@
 
 // Enum for distance type
 enum DistanceKernel {
-    NAIVE,
+    SCALAR,
     SIMD,
 };
 
-// Serial distance kernel
-float distance_naive(const float *a, const float *b, size_t d);
+// Serial distance kernel (L2 squared)
+float distance_scalar(const float *a, const float *b, size_t d);
 
-// SIMD-ized distance kernel
+// SIMD-ized distance kernel (L2 squared)
 float distance_simd(const float *a, const float *b, size_t d);
+
+template <DistanceKernel kernel>
+float distance(const float *a, const float *b, size_t d);
 
 #endif // DISTANCES_H

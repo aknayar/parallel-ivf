@@ -10,6 +10,7 @@ import parallel_ivf
 
 from sklearn.cluster import KMeans as SklearnKMeans
 
+EPSILON = 1e-4
 
 def generate_gaussian_clusters(n_clusters=3, n_samples_per_cluster=100, dim=2, seed=42):
     """Generate simple Gaussian clusters"""
@@ -49,21 +50,14 @@ def test_kmeans_vs_sklearn_2d():
     sklearn_kmeans.fit(data)
     sklearn_centroids = sklearn_kmeans.cluster_centers_
     
-    # Both should find reasonable cluster centers
-    # Check that centroids are within reasonable bounds
-    assert np.all(np.abs(our_centroids) < 20), "Our centroids are unreasonably far"
-    assert np.all(np.abs(sklearn_centroids) < 20), "Sklearn centroids are unreasonably far"
-    
-    # Compare centroids - match each of ours to nearest sklearn centroid
+    # Compare closest centroids
     max_centroid_distance = 0
     for our_c in our_centroids:
-        # Find closest sklearn centroid
         distances = [np.linalg.norm(our_c - sk_c) for sk_c in sklearn_centroids]
         min_dist = min(distances)
         max_centroid_distance = max(max_centroid_distance, min_dist)
     
-    # Our centroids should be reasonably close to sklearn's (within ~5 units for 2D)
-    assert max_centroid_distance < .1, f"Centroids too different: max dist {max_centroid_distance:.2f}"
+    assert max_centroid_distance < EPSILON, f"Centroids too different: max dist {max_centroid_distance:.2f}"
 
 
 def test_kmeans_vs_sklearn_128d():
@@ -87,12 +81,7 @@ def test_kmeans_vs_sklearn_128d():
     sklearn_kmeans.fit(data)
     sklearn_centroids = sklearn_kmeans.cluster_centers_
     
-    # Both should find reasonable cluster centers
-    # Check that centroids are within reasonable bounds
-    assert np.all(np.abs(our_centroids) < 20), "Our centroids are unreasonably far"
-    assert np.all(np.abs(sklearn_centroids) < 20), "Sklearn centroids are unreasonably far"
-    
-    # Compare centroids - match each of ours to nearest sklearn centroid
+    # Compare closest centroids
     centroid_distances = []
     for our_c in our_centroids:
         distances = [np.linalg.norm(our_c - sk_c) for sk_c in sklearn_centroids]
@@ -100,7 +89,7 @@ def test_kmeans_vs_sklearn_128d():
     
     max_centroid_distance = np.max(centroid_distances)
 
-    assert max_centroid_distance < .1, f"Max centroid distance {max_centroid_distance:.2f} too large"
+    assert max_centroid_distance < EPSILON, f"Max centroid distance {max_centroid_distance:.2f} too large"
 
 
 def test_kmeans_unique_centroids():
@@ -117,7 +106,7 @@ def test_kmeans_unique_centroids():
     for i in range(n_clusters):
         for j in range(i + 1, n_clusters):
             dist = np.linalg.norm(centroids[i] - centroids[j])
-            assert dist > 1e-6, f"Centroids {i} and {j} are too close: {dist}"
+            assert dist > EPSILON, f"Centroids {i} and {j} are too close: {dist}"
 
 
 if __name__ == "__main__":

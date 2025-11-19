@@ -14,14 +14,15 @@
 #define RANDOM_SEED 5
 
 template <DistanceKernel DistanceKernel>
-void KMeans<DistanceKernel>::train(size_t n, const float *data, float *centroids) {
+void KMeans<DistanceKernel>::train(size_t n, const float *data,
+                                   float *centroids) {
     init_centroids(n, data, centroids);
     learn_centroids(n, data, centroids);
 }
 
 template <DistanceKernel DistanceKernel>
 void KMeans<DistanceKernel>::init_centroids(size_t n, const float *data,
-                                    float *centroids) {
+                                            float *centroids) {
     // Following https://en.wikipedia.org/wiki/K-means%2B%2B
     std::mt19937 gen(RANDOM_SEED);
     std::uniform_real_distribution<float> uniform(0.0f, 1.0f);
@@ -29,36 +30,36 @@ void KMeans<DistanceKernel>::init_centroids(size_t n, const float *data,
 
     // 1: Randomly choose the first cluster
     std::uniform_int_distribution<> dis(0, n - 1);
-    size_t first_centroid_idx = dis(gen);
-    memcpy(centroids, data + first_centroid_idx * d, point_bytes);
-    size_t num_clusters = 1;
+    size_t c_idx = dis(gen);
+    memcpy(centroids, data + c_idx * d, point_bytes);
+    size_t num_c = 1;
 
     // 2: Choose the remaining centroids
-    while (num_clusters < k) {
-        std::vector<float> distances(n);
+    while (num_c < k) {
+        std::vector<float> dists(n);
 
         for (size_t i = 0; i < n; i++) {
-            const float *point = data + i * d;
-            float min_distance = distance<DistanceKernel>(point, centroids, d);
+            const float *pt = data + i * d;
+            float min_dist = distance<DistanceKernel>(pt, centroids, d);
 
-            for (size_t j = 0; j < num_clusters; j++) {
-                min_distance =
-                    std::min(min_distance,
-                             distance<DistanceKernel>(point, centroids + j * d, d));
+            for (size_t j = 0; j < num_c; j++) {
+                float *cent = centroids + j * d;
+                min_dist =
+                    std::min(min_dist, distance<DistanceKernel>(pt, cent, d));
             }
-            distances[i] = min_distance;
+            dists[i] = min_dist;
         }
 
-        float total = std::accumulate(distances.begin(), distances.end(), 0.0f);
-        float threshold = total * uniform(gen);
-        float cumulative = 0.0f;
+        float total = std::accumulate(dists.begin(), dists.end(), 0.0f);
+        float thresh = total * uniform(gen);
+        float cumul = 0.0f;
 
         for (size_t i = 0; i < n; i++) {
-            const float *point = data + i * d;
-            cumulative += distances[i];
-            if (cumulative > threshold) {
-                memcpy(centroids + num_clusters * d, point, point_bytes);
-                num_clusters++;
+            const float *pt = data + i * d;
+            cumul += dists[i];
+            if (cumul > thresh) {
+                memcpy(centroids + num_c * d, pt, point_bytes);
+                num_c++;
                 break;
             }
         }
@@ -68,58 +69,69 @@ void KMeans<DistanceKernel>::init_centroids(size_t n, const float *data,
 template <DistanceKernel DistanceKernel>
 void KMeans<DistanceKernel>::learn_centroids(size_t n, const float *data,
                                              float *centroids) {
-    std::vector<std::vector<size_t>> assignments(k);
+    std::vector<std::vector<size_t>> assign(k);
 
     bool converged = false;
     while (!converged) {
-        // Clear assignments
+        // Clear assign
         for (size_t i = 0; i < k; i++) {
-            assignments[i].clear();
+            assign[i].clear();
         }
 
         // Assign points to closest centroids
         for (size_t i = 0; i < n; i++) {
-            const float *point = data + i * d;
-            size_t closest_centroid_idx = 0;
-            float min_distance = distance<DistanceKernel>(point, centroids, d);
+            const float *pt = data + i * d;
+            size_t c_idx = 0;
+            float min_dist = distance<DistanceKernel>(pt, centroids, d);
             for (size_t j = 0; j < k; j++) {
-                float curr_distance = distance<DistanceKernel>(point, centroids + j * d, d);
-                if (curr_distance < min_distance) {
-                    min_distance = curr_distance;
-                    closest_centroid_idx = j;
+                float curr_dist =
+                    distance<DistanceKernel>(pt, centroids + j * d, d);
+                if (curr_dist < min_dist) {
+                    min_dist = curr_dist;
+                    c_idx = j;
                 }
             }
-            assignments[closest_centroid_idx].push_back(i);
+            assign[c_idx].push_back(i);
         }
 
         // Update centroids
         std::vector<float> new_centroids(k * d);
         for (size_t i = 0; i < k; i++) {
-            const std::vector<size_t> &assignment = assignments[i];
+            const std::vector<size_t> &assignment = assign[i];
             if (assignment.empty()) {
                 continue;
             }
-            float *centroid = new_centroids.data() + i * d;
+            float *cent = new_centroids.data() + i * d;
             for (size_t j = 0; j < d; j++) {
                 float sum = 0.0f;
                 for (size_t p : assignment) {
                     sum += data[p * d + j];
                 }
-                centroid[j] = sum / assignment.size();
+                cent[j] = sum / assignment.size();
             }
         }
 
         // Check convergence
-        bool converged = true;
+        converged = true;
         for (size_t i = 0; i < k; i++) {
-            const float *centroid = centroids + i * d;
-            const float *new_centroid = new_centroids.data() + i * d;
+            const float *cent = centroids + i * d;
+            const float *new_cent = new_centroids.data() + i * d;
             for (size_t j = 0; j < d; j++) {
-                if (centroid[j] != new_centroid[j]) {
+                if (cent[j] != new_cent[j]) {
                     converged = false;
                     break;
                 }
             }
+            if (!converged) break;
+        }
+        
+        // Copy new centroids if not converged
+        if (!converged) {
+            memcpy(centroids, new_centroids.data(), k * d * sizeof(float));
         }
     }
 }
+
+// Explicit template instantiations
+template class KMeans<DistanceKernel::SCALAR>;
+template class KMeans<DistanceKernel::SIMD>;

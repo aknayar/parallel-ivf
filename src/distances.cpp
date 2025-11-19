@@ -35,3 +35,7 @@ float distance(const float *a, const float *b, size_t d) {
         static_assert(false, "Invalid distance kernel");
     }
 }
+
+// Explicit template instantiations
+template float distance<DistanceKernel::SCALAR>(const float *, const float *, size_t);
+template float distance<DistanceKernel::SIMD>(const float *, const float *, size_t);

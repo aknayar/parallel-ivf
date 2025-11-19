@@ -6,16 +6,25 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Fetch Google Test
+# Fetch dependencies
 include(FetchContent)
+
+# Fetch Google Test
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG v1.14.0
 )
-# For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+
+# Fetch pybind11
+FetchContent_Declare(
+  pybind11
+  GIT_REPOSITORY https://github.com/pybind/pybind11.git
+  GIT_TAG v2.11.1
+)
+
+FetchContent_MakeAvailable(googletest pybind11)
 
 # Collect sources (or list them manually)
 add_library(my_project_lib
@@ -24,6 +33,9 @@ add_library(my_project_lib
     src/distances.cpp
     # Add more files here
 )
+
+# Enable position-independent code for shared library linking
+set_target_properties(my_project_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(my_project_lib
     PUBLIC
@@ -61,3 +73,7 @@ foreach(test_src ${TEST_SOURCES})
     get_filename_component(test_name ${test_src} NAME_WE)
     gtest_discover_tests(${test_name})
 endforeach()
+
+# Python bindings
+pybind11_add_module(parallel_ivf src/python_bindings.cpp)
+target_link_libraries(parallel_ivf PRIVATE my_project_lib)

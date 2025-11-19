@@ -89,6 +89,41 @@ PYBIND11_MODULE(parallel_ivf, m) {
              "Parameters:\n"
              "  add_data: numpy array of shape (n_add, d)")
         
+        .def("build", 
+             [](IVFBase &self, py::array_t<float> train_data) {
+                 py::buffer_info buf = train_data.request();
+                 
+                 if (buf.ndim != 2) {
+                     throw std::runtime_error("train_data must be a 2D array");
+                 }
+                 
+                 size_t n_train = buf.shape[0];
+                 size_t d = buf.shape[1];
+                 
+                 if (d != self.d) {
+                     throw std::runtime_error(
+                         "Dimension mismatch: expected " + std::to_string(self.d) + 
+                         " but got " + std::to_string(d));
+                 }
+
+                 // Optional: sanity check we have centroids already
+                 if (self.centroids.empty()) {
+                     throw std::runtime_error(
+                         "Cannot build IVF: centroids are empty. Call train() first.");
+                 }
+                 
+                 self.build(n_train, static_cast<float*>(buf.ptr));
+             },
+             py::arg("train_data"),
+             "Build inverted lists using the training data\n\n"
+             "Parameters:\n"
+             "  train_data: numpy array of shape (n_train, d)")
+
+
+
+
+
+
         .def("search", 
      [](const IVFBase &self, py::array_t<float> queries, 
         size_t k, size_t nprobe) {

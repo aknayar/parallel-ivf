@@ -22,6 +22,8 @@ struct IVF {
 
     virtual void train(const size_t n_train, const float *train_data) = 0;
 
+    virtual void build(const size_t n_train, const float *train_data) = 0;
+
     virtual void add(const size_t n_add, const float *add_data) = 0;
 
     virtual void search(const size_t n_queries, const float *queries,

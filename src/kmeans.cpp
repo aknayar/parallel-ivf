@@ -10,6 +10,7 @@
 #include <cstring>
 #include <numeric>
 #include <random>
+#include <iostream>
 
 #define RANDOM_SEED 5
 
@@ -40,9 +41,11 @@ void KMeans<DistanceKernel>::init_centroids(size_t n, const float *data,
 
         for (size_t i = 0; i < n; i++) {
             const float *pt = data + i * d;
+            //std::cout<<"Here\n"<<std::endl;
             float min_dist = distance<DistanceKernel>(pt, centroids, d);
 
             for (size_t j = 0; j < num_c; j++) {
+            //    std::cout<<"Here2\n"<<std::endl;
                 float *cent = centroids + j * d;
                 min_dist =
                     std::min(min_dist, distance<DistanceKernel>(pt, cent, d));

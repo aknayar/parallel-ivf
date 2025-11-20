@@ -4,6 +4,10 @@
  * @date 11-18-2025
  */
 
+
+//TODO: Update distance calls
+
+
 #include "IVFBase.h"
 #include <limits>
 #include <queue>
@@ -13,7 +17,7 @@
 void IVFBase::train(const size_t n_train, const float *train_data) {
     //std::cout<<"Distance measured or some shit\n"<<std::endl;
     centroids.resize(nlist * d);
-   // 
+    
     kmeans.train(n_train, train_data, centroids.data(), nlist);
 }
 

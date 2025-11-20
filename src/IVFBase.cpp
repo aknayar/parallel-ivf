@@ -4,6 +4,10 @@
  * @date 11-18-2025
  */
 
+
+//TODO: Update distance calls
+
+
 #include "IVFBase.h"
 #include <limits>
 #include <queue>
@@ -11,12 +15,15 @@
 
 
 void IVFBase::train(const size_t n_train, const float *train_data) {
+    //std::cout<<"Distance measured or some shit\n"<<std::endl;
     centroids.resize(nlist * d);
+    
     kmeans.train(n_train, train_data, centroids.data(), nlist);
 }
 
 void IVFBase::build(const size_t n_train, const float *train_data){
     //should include some sort of error handling if centroids not builts
+    
     if (centroids.empty()){
         return;
     }
@@ -25,6 +32,8 @@ void IVFBase::build(const size_t n_train, const float *train_data){
     //for each point in data find closest centroid
     //add it to list
     //add label to lable list
+    inv_lists.clear();
+    labels.clear();
     inv_lists.resize(nlist);
     labels.resize(nlist);
     const float* cent_data = centroids.data();
@@ -32,11 +41,7 @@ void IVFBase::build(const size_t n_train, const float *train_data){
     for(size_t i = 0; i < n_train; i++){
 
         const float* x = train_data + i * d;
-        // std::vector<float>curr_vector;
-        // for (size_t j = 0; j < d; j++){
-        //     curr_vector.emplace_back(train_data[i*d+j]);
-        // }
-        // auto curr_vector_data = curr_vector.data();
+        
         float min_distance = std::numeric_limits<float>::max();
         size_t bci = 0;
         
@@ -50,11 +55,9 @@ void IVFBase::build(const size_t n_train, const float *train_data){
             }
             
         }
-
         auto &list = inv_lists[bci];
         list.insert(list.end(), x, x + d);
 
-        
         labels[bci].emplace_back(i);
          
     }

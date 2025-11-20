@@ -58,6 +58,7 @@ def test_kmeans_vs_sklearn_2d():
         max_centroid_distance = max(max_centroid_distance, min_dist)
     
     assert max_centroid_distance < EPSILON, f"Centroids too different: max dist {max_centroid_distance:.2f}"
+    
 
 
 def test_kmeans_vs_sklearn_128d():

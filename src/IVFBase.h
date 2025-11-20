@@ -13,7 +13,7 @@
 
 struct IVFBase : IVF {
     public:
-        KMeans<DistanceKernel::SCALAR> kmeans;
+        KMeans<DistanceKernel::SIMD> kmeans;
 
         IVFBase(size_t d, size_t nlist) : IVF(d, nlist), kmeans(d, nlist) {}
 

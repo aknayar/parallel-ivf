@@ -22,7 +22,7 @@ FetchContent_MakeAvailable(pybind11)
 
 # Collect sources
 add_library(my_project_lib
-    src/IVFBase.cpp
+    src/IVF.cpp
     src/kmeans.cpp
     src/distances.cpp
     # Add more files here

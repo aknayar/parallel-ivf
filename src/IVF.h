@@ -10,24 +10,32 @@
 #include <cstddef>
 #include <iostream>
 #include <vector>
+#include "distances.h"
+#include "kmeans.h"
 
-struct IVF {
+template <DistanceKernel DistanceKernel> struct IVF {
+    KMeans<DistanceKernel> kmeans;
     size_t d, nlist, nprobe, maxlabel = 0;
     std::vector<std::vector<float>> inv_lists; // Inverted lists
     std::vector<std::vector<size_t>> labels;   // Associated labels
     std::vector<float> centroids;              // Centroids
 
-    IVF(size_t d, size_t nlist) : d(d), nlist(nlist) {}
-    virtual ~IVF() = default;
+    IVF(size_t d, size_t nlist) : kmeans(d, nlist), d(d), nlist(nlist) {}
+    ~IVF() = default;
 
-    virtual void train(const size_t n_train, const float *train_data) = 0;
+    void train(const size_t n_train, const float *train_data);
 
-    virtual void build(const size_t n_train, const float *train_data) = 0;
+    void build(const size_t n_train, const float *train_data);
 
-    virtual void add(const size_t n_add, const float *add_data) = 0;
+    void add(const size_t n_add, const float *add_data);
 
-    virtual std::vector<std::vector<size_t>> search(const size_t n_queries, const float *queries,
-                        const size_t k, const size_t nprobe) const = 0;
+    std::vector<std::vector<size_t>> search(const size_t n_queries,
+                                            const float *queries,
+                                            const size_t k,
+                                            const size_t nprobe) const;
+
+  private:
+    std::vector<size_t> _top_n_centroids(const float *vector, size_t n) const;
 };
 
 #endif // IVF_H

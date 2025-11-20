@@ -1,6 +1,7 @@
 """Simple pytest comparing our k-means to sklearn"""
 
 import numpy as np
+import time
 import pytest
 import sys
 import os
@@ -39,25 +40,25 @@ def test_kmeans_vs_sklearn_2d():
         dim=2
     )
     n_samples, d = data.shape
-    
-    # Our k-means
-    ivf = parallel_ivf.IVFBase(d=d, nlist=n_clusters)
-    ivf.train(data)
-    our_centroids = np.array(ivf.centroids).reshape(n_clusters, d)
-    
+
     # Sklearn k-means
     sklearn_kmeans = SklearnKMeans(n_clusters=n_clusters, random_state=42, n_init=1)
     sklearn_kmeans.fit(data)
     sklearn_centroids = sklearn_kmeans.cluster_centers_
     
-    # Compare closest centroids
-    max_centroid_distance = 0
-    for our_c in our_centroids:
-        distances = [np.linalg.norm(our_c - sk_c) for sk_c in sklearn_centroids]
-        min_dist = min(distances)
-        max_centroid_distance = max(max_centroid_distance, min_dist)
-    
-    assert max_centroid_distance < EPSILON, f"Centroids too different: max dist {max_centroid_distance:.2f}"
+    # Our k-means
+    for ivf in [parallel_ivf.IVFBase(d=d, nlist=n_clusters), parallel_ivf.IVFSIMD(d=d, nlist=n_clusters)]:
+        ivf.train(data)
+        our_centroids = np.array(ivf.centroids).reshape(n_clusters, d)
+        
+        # Compare closest centroids
+        max_centroid_distance = 0
+        for our_c in our_centroids:
+            distances = [np.linalg.norm(our_c - sk_c) for sk_c in sklearn_centroids]
+            min_dist = min(distances)
+            max_centroid_distance = max(max_centroid_distance, min_dist)
+        
+        assert max_centroid_distance < EPSILON, f"Centroids too different: max dist {max_centroid_distance:.2f}"
     
 
 
@@ -67,30 +68,30 @@ def test_kmeans_vs_sklearn_128d():
     n_clusters = 15
     data, true_centers = generate_gaussian_clusters(
         n_clusters=n_clusters, 
-        n_samples_per_cluster=100, 
+        n_samples_per_cluster=1000, 
         dim=128
     )
     n_samples, d = data.shape
-    
-    # Our k-means
-    ivf = parallel_ivf.IVFBase(d=d, nlist=n_clusters)
-    ivf.train(data)
-    our_centroids = np.array(ivf.centroids).reshape(n_clusters, d)
-    
+
     # Sklearn k-means
     sklearn_kmeans = SklearnKMeans(n_clusters=n_clusters, random_state=42, n_init=1)
     sklearn_kmeans.fit(data)
     sklearn_centroids = sklearn_kmeans.cluster_centers_
     
-    # Compare closest centroids
-    centroid_distances = []
-    for our_c in our_centroids:
-        distances = [np.linalg.norm(our_c - sk_c) for sk_c in sklearn_centroids]
-        centroid_distances.append(min(distances))
-    
-    max_centroid_distance = np.max(centroid_distances)
+    # Our k-means
+    for ivf in [parallel_ivf.IVFBase(d=d, nlist=n_clusters), parallel_ivf.IVFSIMD(d=d, nlist=n_clusters)]:
+        ivf.train(data)
+        our_centroids = np.array(ivf.centroids).reshape(n_clusters, d)
+        
+        # Compare closest centroids
+        centroid_distances = []
+        for our_c in our_centroids:
+            distances = [np.linalg.norm(our_c - sk_c) for sk_c in sklearn_centroids]
+            centroid_distances.append(min(distances))
+        
+        max_centroid_distance = np.max(centroid_distances)
 
-    assert max_centroid_distance < EPSILON, f"Max centroid distance {max_centroid_distance:.2f} too large"
+        assert max_centroid_distance < EPSILON, f"Max centroid distance {max_centroid_distance:.2f} too large"
 
 
 def test_kmeans_unique_centroids():
@@ -99,15 +100,15 @@ def test_kmeans_unique_centroids():
     n_clusters = 5
     d = 3
     
-    ivf = parallel_ivf.IVFBase(d=d, nlist=n_clusters)
-    ivf.train(data)
-    centroids = np.array(ivf.centroids).reshape(n_clusters, d)
-    
-    # Check all centroids are different
-    for i in range(n_clusters):
-        for j in range(i + 1, n_clusters):
-            dist = np.linalg.norm(centroids[i] - centroids[j])
-            assert dist > EPSILON, f"Centroids {i} and {j} are too close: {dist}"
+    for ivf in [parallel_ivf.IVFBase(d=d, nlist=n_clusters), parallel_ivf.IVFSIMD(d=d, nlist=n_clusters)]:
+        ivf.train(data)
+        centroids = np.array(ivf.centroids).reshape(n_clusters, d)
+        
+        # Check all centroids are different
+        for i in range(n_clusters):
+            for j in range(i + 1, n_clusters):
+                dist = np.linalg.norm(centroids[i] - centroids[j])
+                assert dist > EPSILON, f"Centroids {i} and {j} are too close: {dist}"
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "-s"])

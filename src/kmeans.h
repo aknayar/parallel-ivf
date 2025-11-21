@@ -12,7 +12,7 @@
 
 #include "distances.h"
 
-template <DistanceKernel DistanceKernel> struct KMeans {
+template <DistanceKernel DistanceKernel, ParallelType ParallelType> struct KMeans {
   public:
     KMeans(size_t d, size_t k) : d(d), k(k) {}
 

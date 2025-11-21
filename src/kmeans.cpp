@@ -14,15 +14,15 @@
 
 #define RANDOM_SEED 5
 
-template <DistanceKernel DistanceKernel>
-void KMeans<DistanceKernel>::train(size_t n, const float *data,
+template <DistanceKernel DistanceKernel, ParallelType ParallelType>
+void KMeans<DistanceKernel, ParallelType>::train(size_t n, const float *data,
                                    float *centroids, size_t nlist) {
     init_centroids(n, data, centroids, nlist);
     learn_centroids(n, data, centroids, nlist);
 }
 
-template <DistanceKernel DistanceKernel>
-void KMeans<DistanceKernel>::init_centroids(size_t n, const float *data,
+template <DistanceKernel DistanceKernel, ParallelType ParallelType>
+void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n, const float *data,
                                             float *centroids, size_t nlist) {
     // Following https://en.wikipedia.org/wiki/K-means%2B%2B
     std::mt19937 gen(RANDOM_SEED);
@@ -69,8 +69,8 @@ void KMeans<DistanceKernel>::init_centroids(size_t n, const float *data,
     }
 }
 
-template <DistanceKernel DistanceKernel>
-void KMeans<DistanceKernel>::learn_centroids(size_t n, const float *data,
+template <DistanceKernel DistanceKernel, ParallelType ParallelType>
+void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n, const float *data,
                                              float *centroids, size_t nlist) {
     std::vector<std::vector<size_t>> assign(k);
 
@@ -137,5 +137,9 @@ void KMeans<DistanceKernel>::learn_centroids(size_t n, const float *data,
 }
 
 // Explicit template instantiations
-template class KMeans<DistanceKernel::SCALAR>;
-template class KMeans<DistanceKernel::SIMD>;
+template class KMeans<DistanceKernel::SCALAR, ParallelType::SERIAL>;
+template class KMeans<DistanceKernel::SIMD, ParallelType::SERIAL>;
+template class KMeans<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>;
+template class KMeans<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>;
+template class KMeans<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;

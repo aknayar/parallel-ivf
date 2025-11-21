@@ -11,14 +11,17 @@
 #include <queue>
 #include <utility>
 
-template <DistanceKernel DistanceKernel>
-void IVF<DistanceKernel>::train(const size_t n_train, const float *train_data) {
+template <DistanceKernel DistanceKernel, ParallelType ParallelType>
+void IVF<DistanceKernel, ParallelType>::train(const size_t n_train,
+                                              const float *train_data) {
     this->centroids.resize(this->nlist * this->d);
-    this->kmeans.train(n_train, train_data, this->centroids.data(), this->nlist);
+    this->kmeans.train(n_train, train_data, this->centroids.data(),
+                       this->nlist);
 }
 
-template <DistanceKernel DistanceKernel>
-void IVF<DistanceKernel>::build(const size_t n_train, const float *train_data) {
+template <DistanceKernel DistanceKernel, ParallelType ParallelType>
+void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
+                                              const float *train_data) {
     // should include some sort of error handling if centroids not builts
 
     if (this->centroids.empty()) {
@@ -58,11 +61,12 @@ void IVF<DistanceKernel>::build(const size_t n_train, const float *train_data) {
     this->maxlabel = n_train - 1;
 }
 
-template <DistanceKernel DistanceKernel>
-void IVF<DistanceKernel>::add(const size_t n_add, const float *add_data) {
+template <DistanceKernel DistanceKernel, ParallelType ParallelType>
+void IVF<DistanceKernel, ParallelType>::add(const size_t n_add,
+                                            const float *add_data) {
     if (this->centroids.empty() ||
-        this->inv_lists.empty()) { // if we have not trained or not built, nothing
-                             // should happen
+        this->inv_lists.empty()) { // if we have not trained or not built,
+                                   // nothing should happen
         return;
     }
 
@@ -79,10 +83,11 @@ void IVF<DistanceKernel>::add(const size_t n_add, const float *add_data) {
     }
 }
 
-template <DistanceKernel DistanceKernel>
+template <DistanceKernel DistanceKernel, ParallelType ParallelType>
 std::vector<std::vector<size_t>>
-IVF<DistanceKernel>::search(const size_t n_queries, const float *queries,
-                            const size_t k, const size_t n_probe) const {
+IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
+                                          const float *queries, const size_t k,
+                                          const size_t n_probe) const {
     std::vector<std::vector<size_t>> ret_labels;
     ret_labels.resize(n_queries);
 
@@ -90,6 +95,15 @@ IVF<DistanceKernel>::search(const size_t n_queries, const float *queries,
     //  find the top nprobe centroid indices
     //  scan every vector in the corresponding ivf for similarity and rank
     //  reutnr the k closest indices
+    
+    if (ParallelType == ParallelType::QUERY_PARALLEL) {
+        printf("FUCKING\n");
+    }
+    if (ParallelType == ParallelType::SERIAL) {
+        printf("BALL\n");
+    }
+    
+#pragma omp parallel for if (ParallelType == ParallelType::QUERY_PARALLEL)
     for (size_t i = 0; i < n_queries; i++) {
         const float *q = queries + i * this->d;
         auto bciVec = this->_top_n_centroids(
@@ -133,9 +147,10 @@ IVF<DistanceKernel>::search(const size_t n_queries, const float *queries,
     return ret_labels;
 }
 
-template <DistanceKernel DistanceKernel>
-std::vector<size_t> IVF<DistanceKernel>::_top_n_centroids(const float *vector,
-                                                          size_t n) const {
+template <DistanceKernel DistanceKernel, ParallelType ParallelType>
+std::vector<size_t>
+IVF<DistanceKernel, ParallelType>::_top_n_centroids(const float *vector,
+                                                    size_t n) const {
 
     if (n > this->nlist) {
         n = this->nlist;
@@ -163,5 +178,9 @@ std::vector<size_t> IVF<DistanceKernel>::_top_n_centroids(const float *vector,
 }
 
 // Explicit template instantiations
-template class IVF<DistanceKernel::SCALAR>;
-template class IVF<DistanceKernel::SIMD>;
+template class IVF<DistanceKernel::SCALAR, ParallelType::SERIAL>;
+template class IVF<DistanceKernel::SIMD, ParallelType::SERIAL>;
+template class IVF<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>;
+template class IVF<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>;
+template class IVF<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
+template class IVF<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;

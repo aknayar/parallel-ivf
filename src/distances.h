@@ -9,11 +9,19 @@
 
 #include <cstddef>
 #include <vector>
+#include <omp.h>
 
 // Enum for distance type
 enum DistanceKernel {
     SCALAR,
     SIMD,
+};
+
+// Enum for parallel type
+enum ParallelType {
+    SERIAL,
+    QUERY_PARALLEL,
+    CANDIDATE_PARALLEL,
 };
 
 // Serial distance kernel (L2 squared)

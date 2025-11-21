@@ -13,9 +13,9 @@
 namespace py = pybind11;
 
 // Helper template to bind any IVF instantiation with minimal code
-template <DistanceKernel Kernel>
+template <DistanceKernel DKernel, ParallelType PType>
 void bind_ivf(py::module &m, const char *class_name, const char *doc) {
-    using IVFType = IVF<Kernel>;
+    using IVFType = IVF<DKernel, PType>;
     
     py::class_<IVFType>(m, class_name, doc)
         .def(py::init<size_t, size_t>(),
@@ -146,12 +146,37 @@ PYBIND11_MODULE(parallel_ivf, m) {
         .value("SIMD", DistanceKernel::SIMD, "SIMD distance computation")
         .export_values();
 
-    // Bind all IVF instantiations - just one line each!
-    bind_ivf<DistanceKernel::SCALAR>(m, "IVFBase", "IVF with scalar distance kernel");
-    bind_ivf<DistanceKernel::SIMD>(m, "IVFSIMD", "IVF with SIMD distance kernel");
+    // Expose ParallelType enum
+    py::enum_<ParallelType>(m, "ParallelType")
+        .value("SERIAL", ParallelType::SERIAL, "Serial implementation")
+        .value("QUERY_PARALLEL", ParallelType::QUERY_PARALLEL, "Query-level parallelism")
+        .value("CANDIDATE_PARALLEL", ParallelType::CANDIDATE_PARALLEL, "Candidate-level parallelism")
+        .export_values();
+
+    // Bind all IVF instantiations - one line per combination!
+    // SCALAR variants
+    bind_ivf<DistanceKernel::SCALAR, ParallelType::SERIAL>(
+        m, "IVFScalarSerial", "IVF with scalar distance, serial");
+    bind_ivf<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>(
+        m, "IVFScalarQueryParallel", "IVF with scalar distance, query-parallel");
+    bind_ivf<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>(
+        m, "IVFScalarCandidateParallel", "IVF with scalar distance, candidate-parallel");
     
-    // To add more in the future, just add another line:
-    // bind_ivf<DistanceKernel::AVX512>(m, "IVFAVX512", "IVF with AVX512 distance kernel");
+    // SIMD variants
+    bind_ivf<DistanceKernel::SIMD, ParallelType::SERIAL>(
+        m, "IVFSIMDSerial", "IVF with SIMD distance, serial");
+    bind_ivf<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>(
+        m, "IVFSIMDQueryParallel", "IVF with SIMD distance, query-parallel");
+    bind_ivf<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>(
+        m, "IVFSIMDCandidateParallel", "IVF with SIMD distance, candidate-parallel");
+    
+    // Aliases for convenience (default = SCALAR + SERIAL)
+    m.attr("IVFBase") = m.attr("IVFScalarSerial");
+    m.attr("IVFSIMD") = m.attr("IVFSIMDSerial");
+    m.attr("IVFSIMDQueryParallel") = m.attr("IVFSIMDQueryParallel");
+    m.attr("IVFSIMDCandidateParallel") = m.attr("IVFSIMDCandidateParallel");
+    m.attr("IVFScalarQueryParallel") = m.attr("IVFScalarQueryParallel");
+    m.attr("IVFScalarCandidateParallel") = m.attr("IVFScalarCandidateParallel");
 
     // Version info
     m.attr("__version__") = "0.1.0";

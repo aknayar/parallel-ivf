@@ -94,15 +94,7 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
     // for each query we want to
     //  find the top nprobe centroid indices
     //  scan every vector in the corresponding ivf for similarity and rank
-    //  reutnr the k closest indices
-    
-    if (ParallelType == ParallelType::QUERY_PARALLEL) {
-        printf("FUCKING\n");
-    }
-    if (ParallelType == ParallelType::SERIAL) {
-        printf("BALL\n");
-    }
-    
+    //  return the k closest indices
 #pragma omp parallel for if (ParallelType == ParallelType::QUERY_PARALLEL)
     for (size_t i = 0; i < n_queries; i++) {
         const float *q = queries + i * this->d;
@@ -121,7 +113,7 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
             auto num_vectors_in_list =
                 curr_list.size() / this->d; // find number of vectors in list
             auto curr_list_data = curr_list.data();
-            for (size_t vi = 0; vi < num_vectors_in_list; vi++) { //
+            for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
                 const float *vec =
                     curr_list_data +
                     vi * this->d; // our current vector within curr_list

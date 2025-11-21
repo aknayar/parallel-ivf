@@ -144,18 +144,6 @@ def test_ivf_matches_on_median_dataset():
             assert ivf_labels == bf_labels, (
                 f"Mismatch for query {qi}: IVF {ivf_labels} vs brute-force {bf_labels}"
             )
-        
-        # time this
-        start_time = time.time()
-        ivf_results = ivf.search(queries, k=k, nprobe=2)
-        end_time = time.time()
-        print(f"Time taken for IVF search with nprobe=2: {end_time - start_time} seconds")
-
-        # Compare IVF vs bruteforce for each query
-        for qi, (ivf_labels, bf_labels) in enumerate(zip(ivf_results, bf_results)):
-            assert ivf_labels == bf_labels, (
-                f"Mismatch for query {qi}: IVF {ivf_labels} vs brute-force {bf_labels}"
-            )
 
 def test_ivf_synthetic_dataset():
     
@@ -173,7 +161,7 @@ def test_ivf_synthetic_dataset():
 
     bf_results = _bruteforce_nearest_neighbors(xb, xq, k=10)
 
-    for ivf in [parallel_ivf.IVFBase(d=d, nlist=nlist), parallel_ivf.IVFSIMD(d=d, nlist=nlist), parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist)]:
+    for ivf in [parallel_ivf.IVFBase(d=d, nlist=nlist), parallel_ivf.IVFSIMD(d=d, nlist=nlist), parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist), parallel_ivf.IVFSIMDCandidateParallel(d=d, nlist=nlist)]:
         ivf.train(xt)
         ivf.build(xb)
 

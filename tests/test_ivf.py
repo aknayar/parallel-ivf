@@ -4,10 +4,7 @@ import sys
 import os
 import time
 from faiss.contrib.datasets import SyntheticDataset
-
-# Make sure we can import the built extension
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../build"))
-import parallel_ivf
+from utils import *
 
 def _make_two_cluster_data():
     """Helper to make two clusters of data for test"""
@@ -40,7 +37,7 @@ def test_ivf_two_cluster_search_and_add():
     nlist = 2
 
     # Build IVF index
-    for ivf in [parallel_ivf.IVFBase(d=d, nlist=nlist), parallel_ivf.IVFSIMD(d=d, nlist=nlist), parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist)]:
+    for ivf in get_all_indexes(d, nlist):
         ivf.train(data)
         ivf.build(data)  # labels 0..9
 
@@ -125,7 +122,7 @@ def test_ivf_matches_on_median_dataset():
     np.random.shuffle(data)
 
 
-    for ivf in [parallel_ivf.IVFBase(d=d, nlist=nlist), parallel_ivf.IVFSIMD(d=d, nlist=nlist), parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist)]:
+    for ivf in get_all_indexes(d, nlist):
         ivf.train(data)
         ivf.build(data)
 
@@ -147,7 +144,7 @@ def test_ivf_matches_on_median_dataset():
 
 def test_ivf_synthetic_dataset():
     
-    ds = SyntheticDataset(d=128, nb=10000, nq=10000, nt=100)
+    ds = SyntheticDataset(d=128, nb=10000, nq=10000, nt=1000)
 
     xq = ds.get_queries()
     xb = ds.get_database()
@@ -161,14 +158,11 @@ def test_ivf_synthetic_dataset():
 
     bf_results = _bruteforce_nearest_neighbors(xb, xq, k=10)
 
-    for ivf in [parallel_ivf.IVFBase(d=d, nlist=nlist), parallel_ivf.IVFSIMD(d=d, nlist=nlist), parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist), parallel_ivf.IVFSIMDCandidateParallel(d=d, nlist=nlist)]:
+    for ivf in get_all_indexes(d, nlist):
         ivf.train(xt)
         ivf.build(xb)
 
-        start_time = time.time()
         ivf_results = ivf.search(xq, k=10, nprobe=10)
-        end_time = time.time()
-        print(f"Time taken for IVF search with nprobe=10: {end_time - start_time} seconds")
 
         # Compare IVF vs bruteforce for each query
         assert_search_results_equal(ivf_results, bf_results, otol=0.01)

@@ -6,9 +6,7 @@ import pytest
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../build'))
-import parallel_ivf
-
+from utils import *
 from sklearn.cluster import KMeans as SklearnKMeans
 
 EPSILON = 1e-4
@@ -47,7 +45,7 @@ def test_kmeans_vs_sklearn_2d():
     sklearn_centroids = sklearn_kmeans.cluster_centers_
     
     # Our k-means
-    for ivf in [parallel_ivf.IVFBase(d=d, nlist=n_clusters), parallel_ivf.IVFSIMD(d=d, nlist=n_clusters)]:
+    for ivf in get_all_indexes(d, n_clusters):
         ivf.train(data)
         our_centroids = np.array(ivf.centroids).reshape(n_clusters, d)
         
@@ -79,7 +77,7 @@ def test_kmeans_vs_sklearn_128d():
     sklearn_centroids = sklearn_kmeans.cluster_centers_
     
     # Our k-means
-    for ivf in [parallel_ivf.IVFBase(d=d, nlist=n_clusters), parallel_ivf.IVFSIMD(d=d, nlist=n_clusters)]:
+    for ivf in get_all_indexes(d, n_clusters):
         ivf.train(data)
         our_centroids = np.array(ivf.centroids).reshape(n_clusters, d)
         
@@ -100,7 +98,7 @@ def test_kmeans_unique_centroids():
     n_clusters = 5
     d = 3
     
-    for ivf in [parallel_ivf.IVFBase(d=d, nlist=n_clusters), parallel_ivf.IVFSIMD(d=d, nlist=n_clusters)]:
+    for ivf in get_all_indexes(d, n_clusters):
         ivf.train(data)
         centroids = np.array(ivf.centroids).reshape(n_clusters, d)
         

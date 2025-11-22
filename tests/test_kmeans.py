@@ -47,7 +47,7 @@ def test_kmeans_vs_sklearn_2d(indexes=None):
     # Our k-means
 
     if not indexes:
-        indexes = get_all_indexes(d, nlist)
+        indexes = get_all_indexes(d, n_clusters)
 
     # Build IVF index
     for ivf in indexes:
@@ -83,7 +83,7 @@ def test_kmeans_vs_sklearn_128d(indexes=None):
     
     # Our k-means
     if not indexes:
-        indexes = get_all_indexes(d, nlist)
+        indexes = get_all_indexes(d, n_clusters)
 
     # Build IVF index
     for ivf in indexes:
@@ -108,7 +108,7 @@ def test_kmeans_unique_centroids(indexes=None):
     d = 3
 
     if not indexes:
-        indexes = get_all_indexes(d, nlist)
+        indexes = get_all_indexes(d, n_clusters)
 
     # Build IVF index
     for ivf in indexes:

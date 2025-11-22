@@ -36,6 +36,8 @@ def test_ivf_two_cluster_search_and_add(indexes=None):
     n, d = data.shape
     nlist = 2
 
+   
+
     if not indexes:
         indexes = get_all_indexes(d, nlist)
 

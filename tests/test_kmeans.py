@@ -45,7 +45,7 @@ def test_kmeans_vs_sklearn_2d(indexes=None):
     sklearn_centroids = sklearn_kmeans.cluster_centers_
     
     # Our k-means
-
+    
     if not indexes:
         indexes = get_all_indexes(d, n_clusters)
 
@@ -109,7 +109,7 @@ def test_kmeans_unique_centroids(indexes=None):
 
     if not indexes:
         indexes = get_all_indexes(d, n_clusters)
-
+    
     # Build IVF index
     for ivf in indexes:
         ivf.train(data)

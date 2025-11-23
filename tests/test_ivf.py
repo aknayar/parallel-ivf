@@ -30,14 +30,19 @@ def assert_search_results_equal(
         assert overlap_rate > 1 - otol, f"Overlap rate {overlap_rate:.6f} is not > {1-otol:.3f}. "
 
 
-def test_ivf_two_cluster_search_and_add():
+def test_ivf_two_cluster_search_and_add(indexes=None):
     """Small IVF testing"""
     data, cluster_a, cluster_b = _make_two_cluster_data()
     n, d = data.shape
     nlist = 2
 
+   
+
+    if not indexes:
+        indexes = get_all_indexes(d, nlist)
+
     # Build IVF index
-    for ivf in get_all_indexes(d, nlist):
+    for ivf in indexes:
         ivf.train(data)
         ivf.build(data)  # labels 0..9
 
@@ -102,7 +107,7 @@ def _bruteforce_nearest_neighbors(data, queries, k):
     return results
 
 
-def test_ivf_matches_on_median_dataset():
+def test_ivf_matches_on_median_dataset(indexes=None):
     
     data, means = generate_six_gaussian_clusters_30d()
     n, d = data.shape
@@ -120,9 +125,11 @@ def test_ivf_matches_on_median_dataset():
 
     # Build IVF index. Shuffle data beforehand to make centroids less predictable
     np.random.shuffle(data)
+    if not indexes:
+        indexes = get_all_indexes(d, nlist)
 
-
-    for ivf in get_all_indexes(d, nlist):
+    # Build IVF index
+    for ivf in indexes:
         ivf.train(data)
         ivf.build(data)
 
@@ -142,7 +149,7 @@ def test_ivf_matches_on_median_dataset():
                 f"Mismatch for query {qi}: IVF {ivf_labels} vs brute-force {bf_labels}"
             )
 
-def test_ivf_synthetic_dataset():
+def test_ivf_synthetic_dataset(indexes=None):
     ds = SyntheticDataset(d=128, nb=10000, nq=10000, nt=1000)
 
     xq = ds.get_queries()
@@ -157,7 +164,11 @@ def test_ivf_synthetic_dataset():
 
     bf_results = _bruteforce_nearest_neighbors(xb, xq, k=10)
 
-    for ivf in get_all_indexes(d, nlist):
+    if not indexes:
+        indexes = get_all_indexes(d, nlist)
+
+    # Build IVF index
+    for ivf in indexes:
         ivf.train(xt)
         ivf.build(xb)
 

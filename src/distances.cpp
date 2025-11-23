@@ -51,13 +51,104 @@ float distance_simd(const float *a, const float *b, size_t d) {
     return ret_dist;
 }
 
+float* distance_cache(const float *a, const float *b, size_t d, size_t n){
+    size_t CACHE_LINE_SIZE = 16;
+    float* distances = new float[n]();
+    if (d <= CACHE_LINE_SIZE){
+        for (size_t i = 0; i < n; i++){
+            distances[i] = distance_scalar(a, b+d*i,d);
+        }
+        return distances;
+    } else {
+        
+        auto N = d / CACHE_LINE_SIZE;
+        auto rem = d % CACHE_LINE_SIZE;
+
+        for (size_t i =0; i < N*CACHE_LINE_SIZE; i += CACHE_LINE_SIZE){ //do sum for each 16 byte block of floats
+            for (size_t j = 0; j < n; j++){ //do sum for all floats in b
+                for (size_t k = i; k < i+CACHE_LINE_SIZE; k++){ //distance calc the current 16 floats and update distances
+                    float diff = a[k] - b[d*j+k]; //get the kth float of a, and the kth float of the jth float vec of b
+                    distances[j] += diff * diff;
+                }
+            }
+        }
+        
+        for (size_t j = 0; j < n; j++){ //do sum for all floats in b
+            for (size_t k = N*CACHE_LINE_SIZE; k < d; k++){ //distance calc the current 16 floats and update distances
+                float diff = a[k] - b[d*j+k]; //get the kth float of a, and the kth float of the jth float vec of b
+                distances[j] += diff * diff;
+            }
+        }
+
+        return distances;
+        
+
+    }
+   
+}
+
+float* distance_cache_simd(const float *a, const float *b, size_t d, size_t n){
+    size_t CACHE_LINE_SIZE = 16;
+    float* distances = new float[n]();
+    if (d <= CACHE_LINE_SIZE){
+        for (size_t i = 0; i < n; i++){
+            distances[i] = distance_simd(a, b+d*i,d);
+        }
+        return distances;
+    } else {
+        
+        auto N = d / CACHE_LINE_SIZE;
+        auto rem = d % CACHE_LINE_SIZE;
+
+        for (size_t i =0; i < N*CACHE_LINE_SIZE; i += CACHE_LINE_SIZE){ //do sum for each 16 byte block of floats
+            for (size_t j = 0; j < n; j++){ //do sum for all floats in b
+                auto dist = distance_simd(a+i, b + d*j +i, CACHE_LINE_SIZE); //do the SIMD-ized distance comp for 16 bytes at a time
+                distances[j]+=dist;
+            }
+        }
+        
+        for (size_t j = 0; j < n; j++){ //do sum for all floats in b
+            auto simd_d = d - N * CACHE_LINE_SIZE;
+            auto k = N*CACHE_LINE_SIZE;
+            auto dist = distance_simd(a+k, b + d*j +k, simd_d); //do the SIMD-ized distance comp for 16 bytes at a time
+            distances[j]+=dist;
+        }
+
+        return distances;
+        
+
+    }
+   
+}
+
+
+
 template <DistanceKernel kernel>
 float distance(const float *a, const float *b, size_t d) {
     if constexpr (kernel == DistanceKernel::SCALAR) {
         return distance_scalar(a, b, d);
     } else if constexpr (kernel == DistanceKernel::SIMD) {
         return distance_simd(a, b, d);
-    } else {
+    } 
+    else if constexpr (kernel == DistanceKernel::CACHE){
+        return distance_scalar(a, b, d);
+    }
+    else if constexpr (kernel == DistanceKernel::CACHESIMD){
+        return distance_scalar(a, b, d);
+    }
+    else {
+        static_assert(false, "Invalid distance kernel");
+    }
+}
+
+template <DistanceKernel kernel>
+float* distance(const float *a, const float *b, size_t d, size_t n) {
+    if constexpr (kernel==DistanceKernel::CACHE){
+        return distance_cache(a,b,d,n);
+    } else if constexpr (kernel==DistanceKernel::CACHESIMD){
+        return distance_cache_simd(a,b,d,n);
+    } 
+    else{
         static_assert(false, "Invalid distance kernel");
     }
 }
@@ -65,3 +156,7 @@ float distance(const float *a, const float *b, size_t d) {
 // Explicit template instantiations
 template float distance<DistanceKernel::SCALAR>(const float *, const float *, size_t);
 template float distance<DistanceKernel::SIMD>(const float *, const float *, size_t);
+template float distance<DistanceKernel::CACHE>(const float *, const float *, size_t);
+template float distance<DistanceKernel::CACHESIMD>(const float *, const float *, size_t);
+template float* distance<DistanceKernel::CACHE>(const float *, const float *, size_t, size_t);
+template float* distance<DistanceKernel::CACHESIMD>(const float *, const float *, size_t, size_t);

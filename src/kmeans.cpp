@@ -41,16 +41,28 @@ void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n, const float 
 
         for (size_t i = 0; i < n; i++) {
             const float *pt = data + i * d;
-            //std::cout<<"Here\n"<<std::endl;
-            float min_dist = distance<DistanceKernel>(pt, centroids, d);
 
-            for (size_t j = 0; j < num_c; j++) {
-            //    std::cout<<"Here2\n"<<std::endl;
-                float *cent = centroids + j * d;
-                min_dist =
-                    std::min(min_dist, distance<DistanceKernel>(pt, cent, d));
+            if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
+                float* distances=distance<DistanceKernel>(pt,centroids,d, num_c);
+                float min_dist = distances[0];
+                for (size_t j = 0; j < num_c; j++) {
+                    min_dist = std::min(min_dist, distances[j]);
+                }
+                dists[i] = min_dist;
+
+            } else{
+                float min_dist = distance<DistanceKernel>(pt, centroids, d);
+
+                for (size_t j = 0; j < num_c; j++) {
+                    float *cent = centroids + j * d;
+                    min_dist =
+                        std::min(min_dist, distance<DistanceKernel>(pt, cent, d));
+                }
+                dists[i] = min_dist;
+               
             }
-            dists[i] = min_dist;
+
+             
         }
 
         float total = std::accumulate(dists.begin(), dists.end(), 0.0f);
@@ -83,18 +95,36 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n, const float
 
         // Assign points to closest centroids
         for (size_t i = 0; i < n; i++) {
-            const float *pt = data + i * d;
-            size_t c_idx = 0;
-            float min_dist = distance<DistanceKernel>(pt, centroids, d);
-            for (size_t j = 0; j < k; j++) {
-                float curr_dist =
-                    distance<DistanceKernel>(pt, centroids + j * d, d);
-                if (curr_dist < min_dist) {
-                    min_dist = curr_dist;
-                    c_idx = j;
+            if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
+                const float *pt = data + i * d;
+                size_t c_idx = 0;
+                float* distances=distance<DistanceKernel>(pt,centroids,d, k);
+                float min_dist = distances[0];
+                for (size_t j = 0; j < k; j++) {
+                    auto curr_dist = distances[j];
+                    if (curr_dist < min_dist){
+                        min_dist = curr_dist;
+                        c_idx = j;
+                    }
+                }
+                assign[c_idx].push_back(i);
+            } else{
+                const float *pt = data + i * d;
+                size_t c_idx = 0;
+                float min_dist = distance<DistanceKernel>(pt, centroids, d);
+                for (size_t j = 0; j < k; j++) {
+                    float curr_dist =
+                        distance<DistanceKernel>(pt, centroids + j * d, d);
+                    if (curr_dist < min_dist) {
+                        min_dist = curr_dist;
+                        c_idx = j;
                 }
             }
-            assign[c_idx].push_back(i);
+                assign[c_idx].push_back(i);
+            }
+
+
+            
         }
 
         // Update centroids
@@ -139,7 +169,13 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n, const float
 // Explicit template instantiations
 template class KMeans<DistanceKernel::SCALAR, ParallelType::SERIAL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::SERIAL>;
+template class KMeans<DistanceKernel::CACHE, ParallelType::SERIAL>;
+template class KMeans<DistanceKernel::CACHESIMD, ParallelType::SERIAL>;
 template class KMeans<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>;
+template class KMeans<DistanceKernel::CACHE, ParallelType::QUERY_PARALLEL>;
+template class KMeans<DistanceKernel::CACHESIMD, ParallelType::QUERY_PARALLEL>;
 template class KMeans<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::CACHESIMD, ParallelType::CANDIDATE_PARALLEL>;

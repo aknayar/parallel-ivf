@@ -28,7 +28,7 @@ def generate_gaussian_clusters(n_clusters=3, n_samples_per_cluster=100, dim=2, s
     return data, centers
 
 
-def test_kmeans_vs_sklearn_2d():
+def test_kmeans_vs_sklearn_2d(indexes=None):
     """Compare our k-means to sklearn on 2D Gaussian clusters"""
     # Generate simple 2D data
     n_clusters = 3
@@ -45,7 +45,12 @@ def test_kmeans_vs_sklearn_2d():
     sklearn_centroids = sklearn_kmeans.cluster_centers_
     
     # Our k-means
-    for ivf in get_all_indexes(d, n_clusters):
+    
+    if not indexes:
+        indexes = get_all_indexes(d, n_clusters)
+
+    # Build IVF index
+    for ivf in indexes:
         ivf.train(data)
         our_centroids = np.array(ivf.centroids).reshape(n_clusters, d)
         
@@ -60,7 +65,7 @@ def test_kmeans_vs_sklearn_2d():
     
 
 
-def test_kmeans_vs_sklearn_128d():
+def test_kmeans_vs_sklearn_128d(indexes=None):
     """Compare our k-means to sklearn on 128D Gaussian clusters"""
     # Generate 128D data
     n_clusters = 15
@@ -77,7 +82,11 @@ def test_kmeans_vs_sklearn_128d():
     sklearn_centroids = sklearn_kmeans.cluster_centers_
     
     # Our k-means
-    for ivf in get_all_indexes(d, n_clusters):
+    if not indexes:
+        indexes = get_all_indexes(d, n_clusters)
+
+    # Build IVF index
+    for ivf in indexes:
         ivf.train(data)
         our_centroids = np.array(ivf.centroids).reshape(n_clusters, d)
         
@@ -92,13 +101,17 @@ def test_kmeans_vs_sklearn_128d():
         assert max_centroid_distance < EPSILON, f"Max centroid distance {max_centroid_distance:.2f} too large"
 
 
-def test_kmeans_unique_centroids():
+def test_kmeans_unique_centroids(indexes=None):
     """Ensure all centroids are unique"""
     data, _ = generate_gaussian_clusters(n_clusters=5, n_samples_per_cluster=50, dim=3)
     n_clusters = 5
     d = 3
+
+    if not indexes:
+        indexes = get_all_indexes(d, n_clusters)
     
-    for ivf in get_all_indexes(d, n_clusters):
+    # Build IVF index
+    for ivf in indexes:
         ivf.train(data)
         centroids = np.array(ivf.centroids).reshape(n_clusters, d)
         

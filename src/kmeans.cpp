@@ -139,7 +139,10 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n, const float
 // Explicit template instantiations
 template class KMeans<DistanceKernel::SCALAR, ParallelType::SERIAL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::SERIAL>;
+template class KMeans<DistanceKernel::CACHE, ParallelType::SERIAL>;
 template class KMeans<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>;
+template class KMeans<DistanceKernel::CACHE, ParallelType::QUERY_PARALLEL>;
 template class KMeans<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>;

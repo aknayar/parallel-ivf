@@ -18,10 +18,16 @@ def getIndex(name, d, nlist):
         indexes.append(parallel_ivf.IVFBase(d=d, nlist=nlist))
     if "IVFSIMD" == name:
         indexes.append(parallel_ivf.IVFSIMD(d=d, nlist=nlist))
+    if "IVFCache" == name:
+        indexes.append(parallel_ivf.IVFCache(d=d, nlist=nlist))
     if "IVFSIMDQueryParallel" == name:
         indexes.append(parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist))
     if "IVFSIMDCandidateParallel" == name:
         indexes.append(parallel_ivf.IVFSIMDCandidateParallel(d=d, nlist=nlist))
+    if "IVFCacheQueryParallel" == name:
+        indexes.append(parallel_ivf.IVFCacheQueryParallel(d=d, nlist=nlist))
+    if "IVFCacheCandidateParallel" == name:
+        indexes.append(parallel_ivf.IVFCacheCandidateParallel(d=d, nlist=nlist))
     if "IVFScalarQueryParallel" == name:
         indexes.append(parallel_ivf.IVFScalarQueryParallel(d=d, nlist=nlist))
     if "IVFScalarCandidateParallel" == name:

@@ -15,6 +15,7 @@
 enum DistanceKernel {
     SCALAR,
     SIMD,
+    CACHE,
 };
 
 // Enum for parallel type
@@ -32,5 +33,8 @@ float distance_simd(const float *a, const float *b, size_t d);
 
 template <DistanceKernel kernel>
 float distance(const float *a, const float *b, size_t d);
+
+template <DistanceKernel kernel>
+float* distance(const float *a, const float *b, size_t d, size_t n);
 
 #endif // DISTANCES_H

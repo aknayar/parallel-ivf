@@ -2,10 +2,10 @@
 *Parallelizing inverted file indexes for efficient retrieval and addition to vector databases* 
 
 ## Collaborators  
-- Dhruva ("Drew") Byrapatna  
+- Drew Byrapatna  
 - Akash Nayar   
 
-##Course
+## Course
 15-618 Fall 2025
 
 ---

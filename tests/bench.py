@@ -99,9 +99,9 @@ def medium_test(name):
 
 def hard_test(name):
     d = 128
-    nlist = 40
+    nlist = 30
 
-    data, queries = _gen_data_and_queries(nlist, 200, 1000, d)
+    data, queries = _gen_data_and_queries(nlist, 150, 3000, d)
 
     base = getIndex("IVFBase",d, nlist)[0]
     test = getIndex(name, d, nlist)[0]
@@ -110,9 +110,9 @@ def hard_test(name):
 
 def extreme_test(name):
     d = 256
-    nlist = 80
+    nlist = 70
 
-    data, queries = _gen_data_and_queries(nlist, 400, 200, d)
+    data, queries = _gen_data_and_queries(nlist, 350, 2000, d)
 
     base = getIndex("IVFBase",d, nlist)[0]
     test = getIndex(name, d, nlist)[0]

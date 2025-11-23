@@ -16,6 +16,7 @@ enum DistanceKernel {
     SCALAR,
     SIMD,
     CACHE,
+    CACHESIMD,
 };
 
 // Enum for parallel type

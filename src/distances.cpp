@@ -99,6 +99,9 @@ float distance(const float *a, const float *b, size_t d) {
     else if constexpr (kernel == DistanceKernel::CACHE){
         return distance_scalar(a, b, d);
     }
+    else if constexpr (kernel == DistanceKernel::CACHESIMD){
+        return distance_scalar(a, b, d);
+    }
     else {
         static_assert(false, "Invalid distance kernel");
     }
@@ -108,7 +111,10 @@ template <DistanceKernel kernel>
 float* distance(const float *a, const float *b, size_t d, size_t n) {
     if constexpr (kernel==DistanceKernel::CACHE){
         return distance_cache(a,b,d,n);
-    } else{
+    } else if constexpr (kernel==DistanceKernel::CACHESIMD){
+        return distance_cache(a,b,d,n);
+    } 
+    else{
         static_assert(false, "Invalid distance kernel");
     }
 }
@@ -117,4 +123,6 @@ float* distance(const float *a, const float *b, size_t d, size_t n) {
 template float distance<DistanceKernel::SCALAR>(const float *, const float *, size_t);
 template float distance<DistanceKernel::SIMD>(const float *, const float *, size_t);
 template float distance<DistanceKernel::CACHE>(const float *, const float *, size_t);
+template float distance<DistanceKernel::CACHESIMD>(const float *, const float *, size_t);
 template float* distance<DistanceKernel::CACHE>(const float *, const float *, size_t, size_t);
+template float* distance<DistanceKernel::CACHESIMD>(const float *, const float *, size_t, size_t);

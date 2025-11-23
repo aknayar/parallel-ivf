@@ -190,9 +190,12 @@ IVF<DistanceKernel, ParallelType>::_top_n_centroids(const float *vector,
 template class IVF<DistanceKernel::SCALAR, ParallelType::SERIAL>;
 template class IVF<DistanceKernel::SIMD, ParallelType::SERIAL>;
 template class IVF<DistanceKernel::CACHE, ParallelType::SERIAL>;
+template class IVF<DistanceKernel::CACHESIMD, ParallelType::SERIAL>;
 template class IVF<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::CACHE, ParallelType::QUERY_PARALLEL>;
+template class IVF<DistanceKernel::CACHESIMD, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>;
+template class IVF<DistanceKernel::CACHESIMD, ParallelType::CANDIDATE_PARALLEL>;

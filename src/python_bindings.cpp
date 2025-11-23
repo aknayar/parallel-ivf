@@ -145,6 +145,7 @@ PYBIND11_MODULE(parallel_ivf, m) {
         .value("SCALAR", DistanceKernel::SCALAR, "Scalar distance computation")
         .value("SIMD", DistanceKernel::SIMD, "SIMD distance computation")
         .value("CACHE", DistanceKernel::CACHE, "Cache friendly distance computation")
+        .value("CACHESIMD", DistanceKernel::CACHESIMD, "Cache friendly distance computation with SIMD")
         .export_values();
 
     // Expose ParallelType enum
@@ -177,17 +178,27 @@ PYBIND11_MODULE(parallel_ivf, m) {
         m, "IVFCacheQueryParallel", "IVF with cache friendly distance, query-parallel");
     bind_ivf<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>(
         m, "IVFCacheCandidateParallel", "IVF with cache friendly distance, candidate-parallel");
+
+    bind_ivf<DistanceKernel::CACHESIMD, ParallelType::SERIAL>(
+        m, "IVFCacheSIMDSerial", "IVF with cache friendly distance, serial");
+    bind_ivf<DistanceKernel::CACHESIMD, ParallelType::QUERY_PARALLEL>(
+        m, "IVFCacheSIMDQueryParallel", "IVF with cache friendly distance, query-parallel");
+    bind_ivf<DistanceKernel::CACHESIMD, ParallelType::CANDIDATE_PARALLEL>(
+        m, "IVFCacheSIMDCandidateParallel", "IVF with cache friendly distance, candidate-parallel");
     
     // Aliases for convenience (default = SCALAR + SERIAL)
     m.attr("IVFBase") = m.attr("IVFScalarSerial");
     m.attr("IVFSIMD") = m.attr("IVFSIMDSerial");
     m.attr("IVFCache") = m.attr("IVFCacheSerial");
+    m.attr("IVFCacheSIMD") = m.attr("IVFCacheSIMDSerial");
     m.attr("IVFSIMDQueryParallel") = m.attr("IVFSIMDQueryParallel");
     m.attr("IVFSIMDCandidateParallel") = m.attr("IVFSIMDCandidateParallel");
     m.attr("IVFScalarQueryParallel") = m.attr("IVFScalarQueryParallel");
     m.attr("IVFScalarCandidateParallel") = m.attr("IVFScalarCandidateParallel");
     m.attr("IVFCacheQueryParallel") = m.attr("IVFCacheQueryParallel");
     m.attr("IVFCacheCandidateParallel") = m.attr("IVFCacheCandidateParallel");
+    m.attr("IVFCacheSIMDQueryParallel") = m.attr("IVFCacheQueryParallel");
+    m.attr("IVFCacheSIMDCandidateParallel") = m.attr("IVFCacheCandidateParallel");
 
     // Version info
     m.attr("__version__") = "0.1.0";

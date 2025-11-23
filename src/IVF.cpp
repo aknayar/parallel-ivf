@@ -41,22 +41,34 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
     for (size_t i = 0; i < n_train; i++) {
         const float *x = train_data + i * this->d;
 
-        float min_distance = std::numeric_limits<float>::max();
-        size_t bci = 0;
-
-        for (size_t c = 0; c < this->nlist; c++) {
-            const float *cent = cent_data + c * this->d;
-
-            auto curr_distance = distance<DistanceKernel>(x, cent, this->d);
-            if (curr_distance < min_distance) {
-                min_distance = curr_distance;
-                bci = c;
-            }
-        }
+        auto bciVec = this->_top_n_centroids(x, 1);
+        auto bci = bciVec[0];
         auto &list = this->inv_lists[bci];
         list.insert(list.end(), x, x + this->d);
 
         this->labels[bci].emplace_back(i);
+        // //this->maxlabel++;
+
+
+
+        // // const float *x = train_data + i * this->d;
+
+        // // float min_distance = std::numeric_limits<float>::max();
+        // // size_t bci = 0;
+
+        // // for (size_t c = 0; c < this->nlist; c++) {
+        // //     const float *cent = cent_data + c * this->d;
+
+        // //     auto curr_distance = distance<DistanceKernel>(x, cent, this->d);
+        // //     if (curr_distance < min_distance) {
+        // //         min_distance = curr_distance;
+        // //         bci = c;
+        // //     }
+        // // }
+        // auto &list = this->inv_lists[bci];
+        // list.insert(list.end(), x, x + this->d);
+
+        // this->labels[bci].emplace_back(i);
     }
     this->maxlabel = n_train - 1;
 }
@@ -109,6 +121,7 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
             auto num_vectors_in_list =
                 curr_list.size() / this->d; // find number of vectors in list
             auto curr_list_data = curr_list.data();
+
             if (DistanceKernel==DistanceKernel::CACHE){
                 float* distances=distance<DistanceKernel>(q,curr_list_data,this->d, num_vectors_in_list);
                 for (size_t vi = 0; vi < num_vectors_in_list; vi++){
@@ -122,6 +135,7 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
                 delete[] distances;
                 
             }
+
             else{
                 for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
                     const float *vec =

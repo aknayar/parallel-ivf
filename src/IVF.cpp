@@ -101,7 +101,7 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
                 curr_list.size() / this->d; // find number of vectors in list
             auto curr_list_data = curr_list.data();
 
-            if (DistanceKernel==DistanceKernel::CACHE){
+            if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
                 float* distances=distance<DistanceKernel>(q,curr_list_data,this->d, num_vectors_in_list);
                 for (size_t vi = 0; vi < num_vectors_in_list; vi++){
                     auto pq_distance= -distances[vi];
@@ -157,7 +157,7 @@ IVF<DistanceKernel, ParallelType>::_top_n_centroids(const float *vector,
     std::priority_queue<std::pair<float, size_t>> pq;
     const float *cent_data = this->centroids.data();
 
-    if (DistanceKernel==DistanceKernel::CACHE){
+    if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
         float* distances=distance<DistanceKernel>(vector,cent_data,this->d, this->nlist);
         for (size_t c = 0; c <this->nlist;c++){
             auto pq_distance= -distances[c];

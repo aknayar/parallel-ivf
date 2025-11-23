@@ -42,7 +42,7 @@ void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n, const float 
         for (size_t i = 0; i < n; i++) {
             const float *pt = data + i * d;
 
-            if (DistanceKernel==DistanceKernel::CACHE){
+            if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
                 float* distances=distance<DistanceKernel>(pt,centroids,d, num_c);
                 float min_dist = distances[0];
                 for (size_t j = 0; j < num_c; j++) {
@@ -95,7 +95,7 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n, const float
 
         // Assign points to closest centroids
         for (size_t i = 0; i < n; i++) {
-            if (DistanceKernel==DistanceKernel::CACHE){
+            if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
                 const float *pt = data + i * d;
                 size_t c_idx = 0;
                 float* distances=distance<DistanceKernel>(pt,centroids,d, k);

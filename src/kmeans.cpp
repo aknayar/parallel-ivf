@@ -8,22 +8,25 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <numeric>
 #include <random>
-#include <iostream>
 
 #define RANDOM_SEED 5
 
 template <DistanceKernel DistanceKernel, ParallelType ParallelType>
 void KMeans<DistanceKernel, ParallelType>::train(size_t n, const float *data,
-                                   float *centroids, size_t nlist) {
+                                                 float *centroids,
+                                                 size_t nlist) {
     init_centroids(n, data, centroids, nlist);
     learn_centroids(n, data, centroids, nlist);
 }
 
 template <DistanceKernel DistanceKernel, ParallelType ParallelType>
-void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n, const float *data,
-                                            float *centroids, size_t nlist) {
+void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n,
+                                                          const float *data,
+                                                          float *centroids,
+                                                          size_t nlist) {
     // Following https://en.wikipedia.org/wiki/K-means%2B%2B
     std::mt19937 gen(RANDOM_SEED);
     std::uniform_real_distribution<float> uniform(0.0f, 1.0f);
@@ -42,27 +45,26 @@ void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n, const float 
         for (size_t i = 0; i < n; i++) {
             const float *pt = data + i * d;
 
-            if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
-                float* distances=distance<DistanceKernel>(pt,centroids,d, num_c);
+            if constexpr (DistanceKernel == DistanceKernel::CACHE ||
+                          DistanceKernel == DistanceKernel::CACHESIMD) {
+                float *distances =
+                    distance<DistanceKernel>(pt, centroids, d, num_c);
                 float min_dist = distances[0];
                 for (size_t j = 0; j < num_c; j++) {
                     min_dist = std::min(min_dist, distances[j]);
                 }
                 dists[i] = min_dist;
 
-            } else{
+            } else {
                 float min_dist = distance<DistanceKernel>(pt, centroids, d);
 
                 for (size_t j = 0; j < num_c; j++) {
                     float *cent = centroids + j * d;
-                    min_dist =
-                        std::min(min_dist, distance<DistanceKernel>(pt, cent, d));
+                    min_dist = std::min(min_dist,
+                                        distance<DistanceKernel>(pt, cent, d));
                 }
                 dists[i] = min_dist;
-               
             }
-
-             
         }
 
         float total = std::accumulate(dists.begin(), dists.end(), 0.0f);
@@ -82,8 +84,10 @@ void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n, const float 
 }
 
 template <DistanceKernel DistanceKernel, ParallelType ParallelType>
-void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n, const float *data,
-                                             float *centroids, size_t nlist) {
+void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n,
+                                                           const float *data,
+                                                           float *centroids,
+                                                           size_t nlist) {
     std::vector<std::vector<size_t>> assign(k);
 
     bool converged = false;
@@ -95,20 +99,22 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n, const float
 
         // Assign points to closest centroids
         for (size_t i = 0; i < n; i++) {
-            if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
+            if constexpr (DistanceKernel == DistanceKernel::CACHE ||
+                          DistanceKernel == DistanceKernel::CACHESIMD) {
                 const float *pt = data + i * d;
                 size_t c_idx = 0;
-                float* distances=distance<DistanceKernel>(pt,centroids,d, k);
+                float *distances =
+                    distance<DistanceKernel>(pt, centroids, d, k);
                 float min_dist = distances[0];
                 for (size_t j = 0; j < k; j++) {
                     auto curr_dist = distances[j];
-                    if (curr_dist < min_dist){
+                    if (curr_dist < min_dist) {
                         min_dist = curr_dist;
                         c_idx = j;
                     }
                 }
                 assign[c_idx].push_back(i);
-            } else{
+            } else {
                 const float *pt = data + i * d;
                 size_t c_idx = 0;
                 float min_dist = distance<DistanceKernel>(pt, centroids, d);
@@ -118,13 +124,10 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n, const float
                     if (curr_dist < min_dist) {
                         min_dist = curr_dist;
                         c_idx = j;
+                    }
                 }
-            }
                 assign[c_idx].push_back(i);
             }
-
-
-            
         }
 
         // Update centroids
@@ -178,4 +181,5 @@ template class KMeans<DistanceKernel::CACHESIMD, ParallelType::QUERY_PARALLEL>;
 template class KMeans<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::CACHESIMD, ParallelType::CANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::CACHESIMD,
+                      ParallelType::CANDIDATE_PARALLEL>;

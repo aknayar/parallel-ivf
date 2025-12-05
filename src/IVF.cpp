@@ -47,7 +47,6 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
         list.insert(list.end(), x, x + this->d);
 
         this->labels[bci].emplace_back(i);
-        
     }
     this->maxlabel = n_train - 1;
 }
@@ -81,17 +80,18 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
                                           const size_t n_probe) const {
     std::vector<std::vector<size_t>> ret_labels;
     ret_labels.resize(n_queries);
-    
+
 #pragma omp parallel for if (ParallelType == ParallelType::QUERY_PARALLEL)
     for (size_t i = 0; i < n_queries; i++) {
-    
+
         const float *q = queries + i * this->d;
         auto bciVec = this->_top_n_centroids(
             q, n_probe); // get indices of nprobe closest centroids
         size_t n_probe_clamped = bciVec.size();
         std::priority_queue<std::pair<float, size_t>> pq;
 
-        for (size_t j = 0; j < n_probe_clamped; j++) { // do the below for all centroids indices in bciVec (equal
+        for (size_t j = 0; j < n_probe_clamped;
+             j++) { // do the below for all centroids indices in bciVec (equal
                     // to nprobe)
 
             auto ii = bciVec[j]; // our current centroid index (used to index
@@ -101,35 +101,36 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
                 curr_list.size() / this->d; // find number of vectors in list
             auto curr_list_data = curr_list.data();
 
-            if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
-                float* distances=distance<DistanceKernel>(q,curr_list_data,this->d, num_vectors_in_list);
-                for (size_t vi = 0; vi < num_vectors_in_list; vi++){
-                    auto pq_distance= -distances[vi];
-                    auto label =
-                        this->labels[ii][vi];
+            if constexpr (DistanceKernel == DistanceKernel::CACHE ||
+                DistanceKernel == DistanceKernel::CACHESIMD) {
+                float *distances = distance<DistanceKernel>(
+                    q, curr_list_data, this->d, num_vectors_in_list);
+                for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
+                    auto pq_distance = -distances[vi];
+                    auto label = this->labels[ii][vi];
                     auto pair = std::make_pair(pq_distance, label);
                     pq.push(pair);
                 }
 
                 delete[] distances;
-                
+
             }
 
-            else{
+            else {
                 for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
                     const float *vec =
                         curr_list_data +
                         vi * this->d; // our current vector within curr_list
-                    auto pq_distance = distance<DistanceKernel>(q, vec, this->d) *
-                                    -1.0; // get distance
+                    auto pq_distance =
+                        distance<DistanceKernel>(q, vec, this->d) *
+                        -1.0; // get distance
                     auto label =
                         this->labels[ii][vi]; // get label - find list with ii,
-                                            // find label w/in list with k
+                                              // find label w/in list with k
                     auto pair = std::make_pair(pq_distance, label);
                     pq.push(pair);
                 }
             }
-            
         }
         size_t num_to_add = std::min(k, (size_t)pq.size());
         for (size_t j = 0; j < num_to_add;
@@ -157,26 +158,27 @@ IVF<DistanceKernel, ParallelType>::_top_n_centroids(const float *vector,
     std::priority_queue<std::pair<float, size_t>> pq;
     const float *cent_data = this->centroids.data();
 
-    if (DistanceKernel==DistanceKernel::CACHE || DistanceKernel==DistanceKernel::CACHESIMD){
-        float* distances=distance<DistanceKernel>(vector,cent_data,this->d, this->nlist);
-        for (size_t c = 0; c <this->nlist;c++){
-            auto pq_distance= -distances[c];
-            
+    if constexpr (DistanceKernel == DistanceKernel::CACHE ||
+        DistanceKernel == DistanceKernel::CACHESIMD) {
+        float *distances =
+            distance<DistanceKernel>(vector, cent_data, this->d, this->nlist);
+        for (size_t c = 0; c < this->nlist; c++) {
+            auto pq_distance = -distances[c];
+
             auto pair = std::make_pair(pq_distance, c);
             pq.push(pair);
         }
 
-    }else {
+    } else {
         for (size_t c = 0; c < this->nlist; c++) {
-        const float *cent = cent_data + c * this->d;
+            const float *cent = cent_data + c * this->d;
 
-        auto pq_distance =
-            distance<DistanceKernel>(vector, cent, this->d) * -1.0;
-        auto pair = std::make_pair(pq_distance, c);
-        pq.push(pair);
+            auto pq_distance =
+                distance<DistanceKernel>(vector, cent, this->d) * -1.0;
+            auto pair = std::make_pair(pq_distance, c);
+            pq.push(pair);
         }
     }
-
 
     for (size_t i = 0; i < n; i++) {
         auto [_, index] = pq.top();

@@ -24,11 +24,9 @@ def _gen_data_and_queries(clusters, samples_per, queries, dim):
     return data, queries
 
 
-def _test_loop(base, test, data, queries, k, n_probe, query_add_frac=1, extreme=False):
+def _test_loop(base, test, data, queries, k, n_probe, extreme=False):
     serialTime, serialTrainTime, serialComputeTime = 0.0, 0.0, 0.0
     optimTime, optimTrainTime, optimComputeTime = 0.0, 0.0, 0.0
-
-    add_index = max(int(len(queries) * query_add_frac),1)
 
     NUM_ITERS = 3
     if extreme:
@@ -41,7 +39,6 @@ def _test_loop(base, test, data, queries, k, n_probe, query_add_frac=1, extreme=
         t1 = time.time()
         
         base.search(queries, k=k, nprobe=n_probe)
-        base.add(queries[:add_index])
         t2 = time.time()
         serialTrainTime += t1-t0
         serialComputeTime += t2-t1
@@ -60,7 +57,6 @@ def _test_loop(base, test, data, queries, k, n_probe, query_add_frac=1, extreme=
         t1 = time.time()
         
         test.search(queries, k=k, nprobe=n_probe)
-        test.add(queries[:add_index])
         t2 = time.time()
         optimTrainTime += t1-t0
         optimComputeTime += t2-t1
@@ -106,7 +102,7 @@ def hard_test(name):
     base = getIndex("IVFBase",d, nlist)[0]
     test = getIndex(name, d, nlist)[0]
 
-    return _test_loop(base,test,data,queries,20,10, 0.5)
+    return _test_loop(base,test,data,queries,20,10)
 
 def extreme_test(name):
     d = 256
@@ -117,7 +113,7 @@ def extreme_test(name):
     base = getIndex("IVFBase",d, nlist)[0]
     test = getIndex(name, d, nlist)[0]
 
-    return _test_loop(base,test,data,queries,20,15, 0.5, True)
+    return _test_loop(base,test,data,queries,20,15, True)
 
 
 if __name__ == "__main__":

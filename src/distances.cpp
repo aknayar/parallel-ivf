@@ -121,7 +121,8 @@ float* distance_cache_simd(const float *a, const float *b, size_t d, size_t n){
    
 }
 
-
+template <class T>
+struct always_false : std::false_type {};
 
 template <DistanceKernel kernel>
 float distance(const float *a, const float *b, size_t d) {
@@ -137,7 +138,8 @@ float distance(const float *a, const float *b, size_t d) {
         return distance_scalar(a, b, d);
     }
     else {
-        static_assert(false, "Invalid distance kernel");
+        static_assert(always_false<std::integral_constant<DistanceKernel, kernel>>::value,
+            "Invalid distance kernel");
     }
 }
 
@@ -149,7 +151,8 @@ float* distance(const float *a, const float *b, size_t d, size_t n) {
         return distance_cache_simd(a,b,d,n);
     } 
     else{
-        static_assert(false, "Invalid distance kernel");
+        static_assert(always_false<std::integral_constant<DistanceKernel, kernel>>::value,
+            "Invalid distance kernel");
     }
 }
 

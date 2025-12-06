@@ -1,0 +1,140 @@
+from threadpoolctl import threadpool_limits
+import os
+import time
+from faiss.contrib.datasets import SyntheticDataset
+from utils import *
+import time
+import argparse
+
+from faiss.contrib.datasets import SyntheticDataset
+
+try:
+    from faiss.contrib.datasets_fb import DatasetGIST1M
+except ImportError:
+    from faiss.contrib.datasets import DatasetGIST1M
+
+
+def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
+    train_time, query_time = 0.0, 0.0
+
+    NUM_ITERS = 1
+    os.environ["OMP_NUM_THREADS"] = str(n_threads)
+
+    for _ in range(NUM_ITERS):
+        t0 = time.time()
+        index.train(xt)
+        index.build(xb)
+        t1 = time.time()
+        
+        index.search(xq, k=k, nprobe=n_probe)
+        t2 = time.time()
+        train_time += t1-t0
+        query_time += t2-t1
+    
+    
+    train_time /= NUM_ITERS
+    query_time /= NUM_ITERS
+    qps = nq / query_time
+
+    return train_time, query_time, qps
+
+
+TEST_PARAMS = {
+    "easy": {
+        "nq": 100,
+        "nb": 10000,
+        "nt": 1000,
+        "d": 128,
+        "nlist": 10,
+        "k": 10,
+        "n_probe": 5
+    },
+    "medium": {
+        "nq": 100,
+        "nb": 10000,
+        "nt": 1000,
+        "d": 512,
+        "nlist": 10,
+        "k": 10,
+        "n_probe": 5
+    },
+    "hard": {
+        "nq": 100,
+        "nb": 100000,
+        "nt": 1000,
+        "d": 1024,
+        "nlist": 50,
+        "k": 10,
+        "n_probe": 25
+    },
+    "extreme": {
+        "nq": 100,
+        "nb": 1000000,
+        "nt": 1000,
+        "d": 1024,
+        "nlist": 100,
+        "k": 10,
+        "n_probe": 25
+    },
+    "gist": {
+        "nq": 100,
+        "nb": 1000000,
+        "nt": 1000,
+        "d": 960,
+        "nlist": 50,
+        "k": 10,
+        "n_probe": 5
+    }
+}
+
+
+if __name__ == "__main__":
+    # args: --dataset (easy/medium/hard/extreme/gist)
+    parser = argparse.ArgumentParser(
+                    prog='Correctness')
+    parser.add_argument('-d','--dataset',required=True)
+    args = vars(parser.parse_args())
+    dataset = args["dataset"]
+
+    args = vars(parser.parse_args())
+
+    indexes = [
+        # "IVFBase",
+        # "IVFSIMD",
+        # "IVFCache",
+        # "IVFCacheSIMD",
+        "IVFSIMDQueryParallel",
+        # "IVFSIMDCandidateParallel",
+        # "IVFCacheQueryParallel",
+        # "IVFCacheSIMDQueryParallel",
+        # "IVFCacheCandidateParallel",
+        # "IVFCacheSIMDCandidateParallel",
+        # "IVFScalarQueryParallel",
+        # "IVFScalarCandidateParallel"
+    ]
+
+    test_params = TEST_PARAMS[dataset]
+    ds = SyntheticDataset(test_params["d"], test_params["nt"], test_params["nb"], test_params["nq"], seed=1337)
+    xt, xb, xq = ds.get_train(), ds.get_database(), ds.get_queries()
+
+    for index_name in indexes:
+        print(f"----------------------")
+        index = getIndex(index_name, test_params["d"], test_params["nlist"])[0]
+
+        os.makedirs(f"results/{dataset}", exist_ok=True)
+
+        # iterate through threads
+        max_threads = os.cpu_count()
+        threads = [1]
+        while threads[-1] * 2 <= max_threads:
+            threads.append(2 * threads[-1])
+        with open(f"results/{dataset}/{dataset}_{index_name}.csv", "w") as f:
+            f.write(f"n_threads,train_time,query_time,qps\n")
+            for n_threads in threads:
+                print(f"Testing {index_name} with {n_threads} threads...")
+                train_time, query_time, qps = 0, 0, 0
+                with threadpool_limits(limits=n_threads):
+                    train_time, query_time, qps = test(index, test_params["nq"], xb, xt, xq, test_params["k"], test_params["n_probe"], n_threads)
+                f.write(f"{n_threads},{train_time},{query_time},{qps}\n")
+            
+        

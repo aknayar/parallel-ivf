@@ -121,6 +121,10 @@ float* distance_cache_simd(const float *a, const float *b, size_t d, size_t n){
    
 }
 
+template <typename T>
+void debug_type() {
+    std::cout << "Dumping type: " << typeid(T).name() << std::endl;
+}
 
 
 template <DistanceKernel kernel>
@@ -137,6 +141,7 @@ float distance(const float *a, const float *b, size_t d) {
         return distance_scalar(a, b, d);
     }
     else {
+        debug_type<kernel>();
         static_assert(false, "Invalid distance kernel");
     }
 }

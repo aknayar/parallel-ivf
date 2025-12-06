@@ -66,18 +66,6 @@ def test_ivf_two_cluster_search_and_add(indexes=None):
         
         assert all(5 <= lab < 10 for lab in labels_b), f"Cluster B query returned wrong labels: {labels_b}"
 
-        # --- Add a new point very close to cluster A ---
-        new_point = np.array([[0.01, -0.02]], dtype=np.float32)
-        ivf.add(new_point)  # should get label = 10
-
-        # Query again near cluster A
-        results_a2 = ivf.search(q_a, k=6, nprobe=1)
-        labels_a2 = results_a2[0]
-
-        
-        assert 10 in labels_a2, f"new point added to wrong centroid"
-        assert all(0<= lab < 5 for lab in labels_a or lab == 10), f"Add issue"
-
 
 
 def generate_six_gaussian_clusters_30d():

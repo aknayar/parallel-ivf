@@ -27,8 +27,6 @@ template <DistanceKernel DistanceKernel, ParallelType ParallelType> struct IVF {
 
     void build(const size_t n_train, const float *train_data);
 
-    void add(const size_t n_add, const float *add_data);
-
     std::vector<std::vector<size_t>> search(const size_t n_queries,
                                             const float *queries,
                                             const size_t k,

@@ -15,7 +15,7 @@ except ImportError:
 
 
 def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
-    train_time, query_time = 0.0, 0.0
+    train_time, build_time, query_time = 0.0, 0.0, 0.0
 
     NUM_ITERS = 1
     os.environ["OMP_NUM_THREADS"] = str(n_threads)
@@ -23,20 +23,21 @@ def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
     for _ in range(NUM_ITERS):
         t0 = time.time()
         index.train(xt)
-        index.build(xb)
         t1 = time.time()
-        
-        index.search(xq, k=k, nprobe=n_probe)
+        index.build(xb)
         t2 = time.time()
+        index.search(xq, k=k, nprobe=n_probe)
+        t3 = time.time()
         train_time += t1-t0
-        query_time += t2-t1
-    
+        build_time += t2-t1
+        query_time += t3-t2
     
     train_time /= NUM_ITERS
     query_time /= NUM_ITERS
+    build_time /= NUM_ITERS
     qps = nq / query_time
 
-    return train_time, query_time, qps
+    return train_time, build_time, query_time, qps
 
 
 TEST_PARAMS = {
@@ -70,16 +71,16 @@ TEST_PARAMS = {
     "extreme": {
         "nq": 100,
         "nb": 1000000,
-        "nt": 1000,
+        "nt": 10000,
         "d": 1024,
-        "nlist": 100,
+        "nlist": 50,
         "k": 10,
         "n_probe": 25
     },
     "gist": {
         "nq": 100,
         "nb": 1000000,
-        "nt": 1000,
+        "nt": 10000,
         "d": 960,
         "nlist": 50,
         "k": 10,
@@ -99,18 +100,18 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     indexes = [
-        # "IVFBase",
-        # "IVFSIMD",
-        # "IVFCache",
-        # "IVFCacheSIMD",
+        "IVFBase",
+        "IVFSIMD",
+        "IVFCache",
+        "IVFCacheSIMD",
         "IVFSIMDQueryParallel",
-        # "IVFSIMDCandidateParallel",
-        # "IVFCacheQueryParallel",
-        # "IVFCacheSIMDQueryParallel",
-        # "IVFCacheCandidateParallel",
-        # "IVFCacheSIMDCandidateParallel",
-        # "IVFScalarQueryParallel",
-        # "IVFScalarCandidateParallel"
+        "IVFSIMDCandidateParallel",
+        "IVFCacheQueryParallel",
+        "IVFCacheSIMDQueryParallel",
+        "IVFCacheCandidateParallel",
+        "IVFCacheSIMDCandidateParallel",
+        "IVFScalarQueryParallel",
+        "IVFScalarCandidateParallel"
     ]
 
     test_params = TEST_PARAMS[dataset]
@@ -129,12 +130,13 @@ if __name__ == "__main__":
         while threads[-1] * 2 <= max_threads:
             threads.append(2 * threads[-1])
         with open(f"results/{dataset}/{dataset}_{index_name}.csv", "w") as f:
-            f.write(f"n_threads,train_time,query_time,qps\n")
-            for n_threads in threads:
-                print(f"Testing {index_name} with {n_threads} threads...")
-                train_time, query_time, qps = 0, 0, 0
-                with threadpool_limits(limits=n_threads):
-                    train_time, query_time, qps = test(index, test_params["nq"], xb, xt, xq, test_params["k"], test_params["n_probe"], n_threads)
-                f.write(f"{n_threads},{train_time},{query_time},{qps}\n")
+            f.write(f"n_threads,train_time,build_time,query_time,qps\n")
+        for n_threads in threads:
+            print(f"Testing {index_name} with {n_threads} threads...")
+            train_time, build_time, query_time, qps = 0, 0, 0, 0
+            with threadpool_limits(limits=n_threads):
+                train_time, build_time, query_time, qps = test(index, test_params["nq"], xb, xt, xq, test_params["k"], test_params["n_probe"], n_threads)
+                with open(f"results/{dataset}/{dataset}_{index_name}.csv", "a") as f:
+                    f.write(f"{n_threads},{train_time},{build_time},{query_time},{qps}\n")
             
         

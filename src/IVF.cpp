@@ -38,39 +38,35 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
     this->labels.resize(this->nlist);
     const float *cent_data = this->centroids.data();
 
+    std::vector<size_t> labels(n_train);
+
+#pragma omp parallel for
     for (size_t i = 0; i < n_train; i++) {
         const float *x = train_data + i * this->d;
 
         auto bciVec = this->_top_n_centroids(x, 1);
-        auto bci = bciVec[0];
-        auto &list = this->inv_lists[bci];
-        list.insert(list.end(), x, x + this->d);
-
-        this->labels[bci].emplace_back(i);
+        labels[i] = bciVec[0];
     }
+
+    // reserve space
+    std::vector<size_t> counts(this->nlist);
+    for (size_t i = 0; i < n_train; i++) {
+        counts[labels[i]]++;
+    }
+
+    for (size_t i = 0; i < this->nlist; i++) {
+        this->inv_lists[i].reserve(counts[i] * this->d);
+        this->labels[i].reserve(counts[i]);
+    }
+
+    for (size_t i = 0; i < n_train; i++) {
+        auto &list = this->inv_lists[labels[i]];
+        list.insert(list.end(), train_data + i * this->d,
+                    train_data + (i + 1) * this->d);
+        this->labels[labels[i]].emplace_back(i);
+    }
+
     this->maxlabel = n_train - 1;
-}
-
-template <DistanceKernel DistanceKernel, ParallelType ParallelType>
-void IVF<DistanceKernel, ParallelType>::add(const size_t n_add,
-                                            const float *add_data) {
-    if (this->centroids.empty() ||
-        this->inv_lists.empty()) { // if we have not trained or not built,
-                                   // nothing should happen
-        return;
-    }
-
-    for (size_t i = 0; i < n_add; i++) {
-        const float *x = add_data + i * this->d;
-
-        auto bciVec = this->_top_n_centroids(x, 1);
-        auto bci = bciVec[0];
-        auto &list = this->inv_lists[bci];
-        list.insert(list.end(), x, x + this->d);
-
-        this->labels[bci].emplace_back(this->maxlabel + 1);
-        this->maxlabel++;
-    }
 }
 
 template <DistanceKernel DistanceKernel, ParallelType ParallelType>
@@ -81,9 +77,10 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
     std::vector<std::vector<size_t>> ret_labels;
     ret_labels.resize(n_queries);
 
+
+
 #pragma omp parallel for if (ParallelType == ParallelType::QUERY_PARALLEL)
     for (size_t i = 0; i < n_queries; i++) {
-
         const float *q = queries + i * this->d;
         auto bciVec = this->_top_n_centroids(
             q, n_probe); // get indices of nprobe closest centroids

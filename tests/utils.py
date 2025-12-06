@@ -26,17 +26,25 @@ def getIndex(name, d, nlist):
         indexes.append(parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist))
     if "IVFSIMDCandidateParallel" == name:
         indexes.append(parallel_ivf.IVFSIMDCandidateParallel(d=d, nlist=nlist))
+    if "IVFSIMDQueryCandidateParallel" == name:
+        indexes.append(parallel_ivf.IVFSIMDQueryCandidateParallel(d=d, nlist=nlist))
     if "IVFCacheQueryParallel" == name:
         indexes.append(parallel_ivf.IVFCacheQueryParallel(d=d, nlist=nlist))
+    if "IVFCacheQueryCandidateParallel" == name:
+        indexes.append(parallel_ivf.IVFCacheQueryCandidateParallel(d=d, nlist=nlist))
     if "IVFCacheSIMDQueryParallel" == name:
         indexes.append(parallel_ivf.IVFCacheSIMDQueryParallel(d=d, nlist=nlist))
     if "IVFCacheCandidateParallel" == name:
         indexes.append(parallel_ivf.IVFCacheCandidateParallel(d=d, nlist=nlist))
+    if "IVFCacheSIMDQueryCandidateParallel" == name:
+        indexes.append(parallel_ivf.IVFCacheSIMDQueryCandidateParallel(d=d, nlist=nlist))
     if "IVFCacheSIMDCandidateParallel" == name:
         indexes.append(parallel_ivf.IVFCacheSIMDCandidateParallel(d=d, nlist=nlist))
     if "IVFScalarQueryParallel" == name:
         indexes.append(parallel_ivf.IVFScalarQueryParallel(d=d, nlist=nlist))
     if "IVFScalarCandidateParallel" == name:
         indexes.append(parallel_ivf.IVFScalarCandidateParallel(d=d, nlist=nlist))
+    if "IVFScalarQueryCandidateParallel" == name:
+        indexes.append(parallel_ivf.IVFScalarQueryCandidateParallel(d=d, nlist=nlist))
     return indexes
 

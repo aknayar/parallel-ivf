@@ -24,6 +24,7 @@ enum ParallelType {
     SERIAL,
     QUERY_PARALLEL,
     CANDIDATE_PARALLEL,
+    QUERYCANDIDATE_PARALLEL,
 };
 
 // Serial distance kernel (L2 squared)

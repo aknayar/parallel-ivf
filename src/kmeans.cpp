@@ -192,3 +192,8 @@ template class KMeans<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::CACHESIMD,
                       ParallelType::CANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::SCALAR, ParallelType::QUERYCANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::SIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::CACHE, ParallelType::QUERYCANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::CACHESIMD,
+                      ParallelType::QUERYCANDIDATE_PARALLEL>;

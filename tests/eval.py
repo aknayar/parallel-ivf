@@ -71,7 +71,7 @@ TEST_PARAMS = {
     "extreme": {
         "nq": 100,
         "nb": 1000000,
-        "nt": 1000,
+        "nt": 10000,
         "d": 1024,
         "nlist": 100,
         "k": 10,
@@ -80,7 +80,7 @@ TEST_PARAMS = {
     "gist": {
         "nq": 100,
         "nb": 1000000,
-        "nt": 1000,
+        "nt": 10000,
         "d": 960,
         "nlist": 50,
         "k": 10,
@@ -131,11 +131,12 @@ if __name__ == "__main__":
             threads.append(2 * threads[-1])
         with open(f"results/{dataset}/{dataset}_{index_name}.csv", "w") as f:
             f.write(f"n_threads,train_time,build_time,query_time,qps\n")
-            for n_threads in threads:
-                print(f"Testing {index_name} with {n_threads} threads...")
-                train_time, build_time, query_time, qps = 0, 0, 0, 0
-                with threadpool_limits(limits=n_threads):
-                    train_time, build_time, query_time, qps = test(index, test_params["nq"], xb, xt, xq, test_params["k"], test_params["n_probe"], n_threads)
-                f.write(f"{n_threads},{train_time},{build_time},{query_time},{qps}\n")
+        for n_threads in threads:
+            print(f"Testing {index_name} with {n_threads} threads...")
+            train_time, build_time, query_time, qps = 0, 0, 0, 0
+            with threadpool_limits(limits=n_threads):
+                train_time, build_time, query_time, qps = test(index, test_params["nq"], xb, xt, xq, test_params["k"], test_params["n_probe"], n_threads)
+                with open(f"results/{dataset}/{dataset}_{index_name}.csv", "a") as f:
+                    f.write(f"{n_threads},{train_time},{build_time},{query_time},{qps}\n")
             
         

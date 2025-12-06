@@ -77,9 +77,10 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
     std::vector<std::vector<size_t>> ret_labels;
     ret_labels.resize(n_queries);
 
+
+
 #pragma omp parallel for if (ParallelType == ParallelType::QUERY_PARALLEL)
     for (size_t i = 0; i < n_queries; i++) {
-
         const float *q = queries + i * this->d;
         auto bciVec = this->_top_n_centroids(
             q, n_probe); // get indices of nprobe closest centroids

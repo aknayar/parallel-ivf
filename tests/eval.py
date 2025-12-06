@@ -73,7 +73,7 @@ TEST_PARAMS = {
         "nb": 1000000,
         "nt": 10000,
         "d": 1024,
-        "nlist": 100,
+        "nlist": 50,
         "k": 10,
         "n_probe": 25
     },
@@ -100,18 +100,18 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     indexes = [
-        # "IVFBase",
-        # "IVFSIMD",
-        # "IVFCache",
-        # "IVFCacheSIMD",
+        "IVFBase",
+        "IVFSIMD",
+        "IVFCache",
+        "IVFCacheSIMD",
         "IVFSIMDQueryParallel",
-        # "IVFSIMDCandidateParallel",
-        # "IVFCacheQueryParallel",
-        # "IVFCacheSIMDQueryParallel",
-        # "IVFCacheCandidateParallel",
-        # "IVFCacheSIMDCandidateParallel",
-        # "IVFScalarQueryParallel",
-        # "IVFScalarCandidateParallel"
+        "IVFSIMDCandidateParallel",
+        "IVFCacheQueryParallel",
+        "IVFCacheSIMDQueryParallel",
+        "IVFCacheCandidateParallel",
+        "IVFCacheSIMDCandidateParallel",
+        "IVFScalarQueryParallel",
+        "IVFScalarCandidateParallel"
     ]
 
     test_params = TEST_PARAMS[dataset]

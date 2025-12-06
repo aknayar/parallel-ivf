@@ -8,10 +8,10 @@ import argparse
 
 from faiss.contrib.datasets import SyntheticDataset
 
-try:
-    from faiss.contrib.datasets_fb import DatasetGIST1M
-except ImportError:
-    from faiss.contrib.datasets import DatasetGIST1M
+# try:
+#     from faiss.contrib.datasets_fb import DatasetGIST1M
+# except ImportError:
+#     from faiss.contrib.datasets import DatasetGIST1M
 
 
 def test(index, nq, xb, xt, xq, k, n_probe, n_threads):

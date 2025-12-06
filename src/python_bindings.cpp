@@ -82,25 +82,6 @@ void bind_ivf(py::module &m, const char *class_name, const char *doc) {
              py::arg("train_data"),
              "Build inverted lists using the training data")
         
-        // add()
-        .def("add", 
-             [](IVFType &self, py::array_t<float> add_data) {
-                 py::buffer_info buf = add_data.request();
-                 if (buf.ndim != 2) {
-                     throw std::runtime_error("add_data must be a 2D array");
-                 }
-                 size_t n_add = buf.shape[0];
-                 size_t d = buf.shape[1];
-                 if (d != self.d) {
-                     throw std::runtime_error(
-                         "Dimension mismatch: expected " + std::to_string(self.d) + 
-                         " but got " + std::to_string(d));
-                 }
-                 self.add(n_add, static_cast<float*>(buf.ptr));
-             },
-             py::arg("add_data"),
-             "Add vectors to the index")
-        
         // search()
         .def("search", 
              [](const IVFType &self, py::array_t<float> queries, 

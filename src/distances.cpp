@@ -84,7 +84,7 @@ float* distance_cache(const float *a, const float *b, size_t d, size_t n){
         
 
     }
-   
+
 }
 
 float* distance_cache_simd(const float *a, const float *b, size_t d, size_t n){
@@ -118,10 +118,10 @@ float* distance_cache_simd(const float *a, const float *b, size_t d, size_t n){
         
 
     }
-   
+
 }
 
-
+template <class T> struct always_false : std::false_type {};
 
 template <DistanceKernel kernel>
 float distance(const float *a, const float *b, size_t d) {
@@ -129,27 +129,27 @@ float distance(const float *a, const float *b, size_t d) {
         return distance_scalar(a, b, d);
     } else if constexpr (kernel == DistanceKernel::SIMD) {
         return distance_simd(a, b, d);
-    } 
-    else if constexpr (kernel == DistanceKernel::CACHE){
+    } else if constexpr (kernel == DistanceKernel::CACHE) {
         return distance_scalar(a, b, d);
-    }
-    else if constexpr (kernel == DistanceKernel::CACHESIMD){
+    } else if constexpr (kernel == DistanceKernel::CACHESIMD) {
         return distance_scalar(a, b, d);
-    }
-    else {
-        static_assert(false, "Invalid distance kernel");
+    } else {
+        static_assert(
+            always_false<std::integral_constant<DistanceKernel, kernel>>::value,
+            "Invalid distance kernel");
     }
 }
 
 template <DistanceKernel kernel>
-float* distance(const float *a, const float *b, size_t d, size_t n) {
-    if constexpr (kernel==DistanceKernel::CACHE){
-        return distance_cache(a,b,d,n);
-    } else if constexpr (kernel==DistanceKernel::CACHESIMD){
-        return distance_cache_simd(a,b,d,n);
-    } 
-    else{
-        static_assert(false, "Invalid distance kernel");
+float *distance(const float *a, const float *b, size_t d, size_t n) {
+    if constexpr (kernel == DistanceKernel::CACHE) {
+        return distance_cache(a, b, d, n);
+    } else if constexpr (kernel == DistanceKernel::CACHESIMD) {
+        return distance_cache_simd(a, b, d, n);
+    } else {
+        static_assert(
+            always_false<std::integral_constant<DistanceKernel, kernel>>::value,
+            "Invalid distance kernel");
     }
 }
 

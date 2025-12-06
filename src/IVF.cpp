@@ -40,7 +40,7 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
 
     std::vector<size_t> labels(n_train);
 
-#pragma omp parallel for if (ParallelType != ParallelType::SERIAL)
+#pragma omp parallel for
     for (size_t i = 0; i < n_train; i++) {
         const float *x = train_data + i * this->d;
 
@@ -48,9 +48,21 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
         labels[i] = bciVec[0];
     }
 
+    // reserve space
+    std::vector<size_t> counts(this->nlist);
+    for (size_t i = 0; i < n_train; i++) {
+        counts[labels[i]]++;
+    }
+
+    for (size_t i = 0; i < this->nlist; i++) {
+        this->inv_lists[i].reserve(counts[i] * this->d);
+        this->labels[i].reserve(counts[i]);
+    }
+
     for (size_t i = 0; i < n_train; i++) {
         auto &list = this->inv_lists[labels[i]];
-        list.insert(list.end(), train_data + i * this->d, train_data + (i + 1) * this->d);
+        list.insert(list.end(), train_data + i * this->d,
+                    train_data + (i + 1) * this->d);
         this->labels[labels[i]].emplace_back(i);
     }
 

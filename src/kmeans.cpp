@@ -42,7 +42,7 @@ void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n,
     while (num_c < k) {
         std::vector<float> dists(n);
 
-#pragma omp parallel for if (ParallelType != ParallelType::SERIAL)
+#pragma omp parallel for
         for (size_t i = 0; i < n; i++) {
             const float *pt = data + i * d;
 
@@ -101,7 +101,7 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n,
         std::vector<size_t> assignments(n);
 
         // Assign points to closest centroids
-#pragma omp parallel for if (ParallelType != ParallelType::SERIAL)
+#pragma omp parallel for
         for (size_t i = 0; i < n; i++) {
             if constexpr (DistanceKernel == DistanceKernel::CACHE ||
                           DistanceKernel == DistanceKernel::CACHESIMD) {
@@ -140,7 +140,7 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n,
 
         // Update centroids
         std::vector<float> new_centroids(k * d);
-#pragma omp parallel for if (ParallelType != ParallelType::SERIAL)
+#pragma omp parallel for
         for (size_t i = 0; i < k; i++) {
             const std::vector<size_t> &assignment = assign[i];
             if (assignment.empty()) {

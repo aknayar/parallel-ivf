@@ -117,7 +117,7 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
                 }
             } else {
                 if constexpr (DistanceKernel == DistanceKernel::CACHE ||
-                              DistanceKernel == DistanceKernel::CACHESIMD) {
+                              DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
                     float *distances = distance<DistanceKernel>(
                         q, curr_list_data, this->d, num_vectors_in_list);
                     for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
@@ -176,7 +176,7 @@ IVF<DistanceKernel, ParallelType>::_top_n_centroids(const float *vector,
     const float *cent_data = this->centroids.data();
 
     if constexpr (DistanceKernel == DistanceKernel::CACHE ||
-                  DistanceKernel == DistanceKernel::CACHESIMD) {
+                  DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
         float *distances =
             distance<DistanceKernel>(vector, cent_data, this->d, this->nlist);
         for (size_t c = 0; c < this->nlist; c++) {
@@ -210,16 +210,23 @@ template class IVF<DistanceKernel::SCALAR, ParallelType::SERIAL>;
 template class IVF<DistanceKernel::SIMD, ParallelType::SERIAL>;
 template class IVF<DistanceKernel::CACHE, ParallelType::SERIAL>;
 template class IVF<DistanceKernel::CACHESIMD, ParallelType::SERIAL>;
+template class IVF<DistanceKernel::OMPSIMD, ParallelType::SERIAL>;
+
 template class IVF<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::CACHE, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::CACHESIMD, ParallelType::QUERY_PARALLEL>;
+template class IVF<DistanceKernel::OMPSIMD, ParallelType::QUERY_PARALLEL>;
+
 template class IVF<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::CACHESIMD, ParallelType::CANDIDATE_PARALLEL>;
+template class IVF<DistanceKernel::OMPSIMD, ParallelType::CANDIDATE_PARALLEL>;
+
 template class IVF<DistanceKernel::SCALAR, ParallelType::QUERYCANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::SIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::CACHE, ParallelType::QUERYCANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::CACHESIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
+template class IVF<DistanceKernel::OMPSIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
 

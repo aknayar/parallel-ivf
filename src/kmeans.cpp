@@ -47,7 +47,7 @@ void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n,
             const float *pt = data + i * d;
 
             if constexpr (DistanceKernel == DistanceKernel::CACHE ||
-                          DistanceKernel == DistanceKernel::CACHESIMD) {
+                          DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
                 float *distances =
                     distance<DistanceKernel>(pt, centroids, d, num_c);
                 float min_dist = distances[0];
@@ -104,7 +104,7 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n,
 #pragma omp parallel for
         for (size_t i = 0; i < n; i++) {
             if constexpr (DistanceKernel == DistanceKernel::CACHE ||
-                          DistanceKernel == DistanceKernel::CACHESIMD) {
+                          DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
                 const float *pt = data + i * d;
                 size_t c_idx = 0;
                 float *distances =
@@ -183,17 +183,21 @@ template class KMeans<DistanceKernel::SCALAR, ParallelType::SERIAL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::SERIAL>;
 template class KMeans<DistanceKernel::CACHE, ParallelType::SERIAL>;
 template class KMeans<DistanceKernel::CACHESIMD, ParallelType::SERIAL>;
+template class KMeans<DistanceKernel::OMPSIMD, ParallelType::SERIAL>;
 template class KMeans<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>;
 template class KMeans<DistanceKernel::CACHE, ParallelType::QUERY_PARALLEL>;
 template class KMeans<DistanceKernel::CACHESIMD, ParallelType::QUERY_PARALLEL>;
+template class KMeans<DistanceKernel::OMPSIMD, ParallelType::QUERY_PARALLEL>;
 template class KMeans<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::CACHESIMD,
                       ParallelType::CANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::OMPSIMD, ParallelType::CANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::SCALAR, ParallelType::QUERYCANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::SIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::CACHE, ParallelType::QUERYCANDIDATE_PARALLEL>;
 template class KMeans<DistanceKernel::CACHESIMD,
                       ParallelType::QUERYCANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::OMPSIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;

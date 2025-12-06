@@ -127,6 +127,7 @@ PYBIND11_MODULE(parallel_ivf, m) {
         .value("SIMD", DistanceKernel::SIMD, "SIMD distance computation")
         .value("CACHE", DistanceKernel::CACHE, "Cache friendly distance computation")
         .value("CACHESIMD", DistanceKernel::CACHESIMD, "Cache friendly distance computation with SIMD")
+        .value("OMPSIMD", DistanceKernel::CACHESIMD, "Cache friendly distance computation with OMP SIMD")
         .export_values();
 
     // Expose ParallelType enum
@@ -176,11 +177,21 @@ PYBIND11_MODULE(parallel_ivf, m) {
     bind_ivf<DistanceKernel::CACHESIMD, ParallelType::QUERYCANDIDATE_PARALLEL>(
         m, "IVFCacheSIMDQueryCandidateParallel", "IVF with cache friendly distance, candidate-parallel");
     
+    bind_ivf<DistanceKernel::OMPSIMD, ParallelType::SERIAL>(
+        m, "IVFOMPSIMDSerial", "IVF with cache friendly distance, serial");
+    bind_ivf<DistanceKernel::OMPSIMD, ParallelType::QUERY_PARALLEL>(
+        m, "IVFOMPSIMDQueryParallel", "IVF with cache friendly distance, query-parallel");
+    bind_ivf<DistanceKernel::OMPSIMD, ParallelType::CANDIDATE_PARALLEL>(
+        m, "IVFOMPSIMDCandidateParallel", "IVF with cache friendly distance, candidate-parallel");
+    bind_ivf<DistanceKernel::OMPSIMD, ParallelType::QUERYCANDIDATE_PARALLEL>(
+        m, "IVFOMPSIMDQueryCandidateParallel", "IVF with cache friendly distance, candidate-parallel");
+    
     // Aliases for convenience (default = SCALAR + SERIAL)
     m.attr("IVFBase") = m.attr("IVFScalarSerial");
     m.attr("IVFSIMD") = m.attr("IVFSIMDSerial");
     m.attr("IVFCache") = m.attr("IVFCacheSerial");
     m.attr("IVFCacheSIMD") = m.attr("IVFCacheSIMDSerial");
+    m.attr("IVFOMPSIMD") = m.attr("IVFOMPSIMDSerial");
     m.attr("IVFSIMDQueryParallel") = m.attr("IVFSIMDQueryParallel");
     m.attr("IVFSIMDCandidateParallel") = m.attr("IVFSIMDCandidateParallel");
     m.attr("IVFScalarQueryParallel") = m.attr("IVFScalarQueryParallel");

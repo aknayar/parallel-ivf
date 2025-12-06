@@ -100,10 +100,10 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     indexes = [
-        "IVFBase",
-        "IVFSIMD",
-        "IVFCache",
-        "IVFCacheSIMD",
+        # "IVFBase",
+        # "IVFSIMD",
+        # "IVFCache",
+        # "IVFCacheSIMD",
         "IVFSIMDQueryParallel",
         "IVFSIMDCandidateParallel",
         "IVFCacheQueryParallel",

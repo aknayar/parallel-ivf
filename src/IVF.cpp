@@ -38,39 +38,23 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
     this->labels.resize(this->nlist);
     const float *cent_data = this->centroids.data();
 
+    std::vector<size_t> labels(n_train);
+
+#pragma omp parallel for if (ParallelType != ParallelType::SERIAL)
     for (size_t i = 0; i < n_train; i++) {
         const float *x = train_data + i * this->d;
 
         auto bciVec = this->_top_n_centroids(x, 1);
-        auto bci = bciVec[0];
-        auto &list = this->inv_lists[bci];
-        list.insert(list.end(), x, x + this->d);
-
-        this->labels[bci].emplace_back(i);
+        labels[i] = bciVec[0];
     }
+
+    for (size_t i = 0; i < n_train; i++) {
+        auto &list = this->inv_lists[labels[i]];
+        list.insert(list.end(), train_data + i * this->d, train_data + (i + 1) * this->d);
+        this->labels[labels[i]].emplace_back(i);
+    }
+
     this->maxlabel = n_train - 1;
-}
-
-template <DistanceKernel DistanceKernel, ParallelType ParallelType>
-void IVF<DistanceKernel, ParallelType>::add(const size_t n_add,
-                                            const float *add_data) {
-    if (this->centroids.empty() ||
-        this->inv_lists.empty()) { // if we have not trained or not built,
-                                   // nothing should happen
-        return;
-    }
-
-    for (size_t i = 0; i < n_add; i++) {
-        const float *x = add_data + i * this->d;
-
-        auto bciVec = this->_top_n_centroids(x, 1);
-        auto bci = bciVec[0];
-        auto &list = this->inv_lists[bci];
-        list.insert(list.end(), x, x + this->d);
-
-        this->labels[bci].emplace_back(this->maxlabel + 1);
-        this->maxlabel++;
-    }
 }
 
 template <DistanceKernel DistanceKernel, ParallelType ParallelType>

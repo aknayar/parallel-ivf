@@ -14,7 +14,7 @@
 #include "kmeans.h"
 
 template <DistanceKernel DistanceKernel, ParallelType ParallelType> struct IVF {
-    KMeans<DistanceKernel, ParallelType> kmeans;
+    KMeans<DistanceKernel> kmeans;
     size_t d, nlist, nprobe, maxlabel = 0;
     std::vector<std::vector<float>> inv_lists; // Inverted lists
     std::vector<std::vector<size_t>> labels;   // Associated labels

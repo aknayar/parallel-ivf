@@ -11,12 +11,16 @@
 #include <vector>
 #include <omp.h>
 
+#define CHUNK_SIZE 16
+
 // Enum for distance type
 enum DistanceKernel {
     SCALAR,
     SIMD,
     CACHE,
     CACHESIMD,
+    CACHEV2,
+    CACHESIMDV2,
     OMPSIMD,
 };
 

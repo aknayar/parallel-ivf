@@ -14,16 +14,16 @@
 
 #define RANDOM_SEED 5
 
-template <DistanceKernel DistanceKernel, ParallelType ParallelType>
-void KMeans<DistanceKernel, ParallelType>::train(size_t n, const float *data,
+template <DistanceKernel DistanceKernel>
+void KMeans<DistanceKernel>::train(size_t n, const float *data,
                                                  float *centroids,
                                                  size_t nlist) {
     init_centroids(n, data, centroids, nlist);
     learn_centroids(n, data, centroids, nlist);
 }
 
-template <DistanceKernel DistanceKernel, ParallelType ParallelType>
-void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n,
+template <DistanceKernel DistanceKernel>
+void KMeans<DistanceKernel>::init_centroids(size_t n,
                                                           const float *data,
                                                           float *centroids,
                                                           size_t nlist) {
@@ -84,8 +84,8 @@ void KMeans<DistanceKernel, ParallelType>::init_centroids(size_t n,
     }
 }
 
-template <DistanceKernel DistanceKernel, ParallelType ParallelType>
-void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n,
+template <DistanceKernel DistanceKernel>
+void KMeans<DistanceKernel>::learn_centroids(size_t n,
                                                            const float *data,
                                                            float *centroids,
                                                            size_t nlist) {
@@ -179,25 +179,10 @@ void KMeans<DistanceKernel, ParallelType>::learn_centroids(size_t n,
 }
 
 // Explicit template instantiations
-template class KMeans<DistanceKernel::SCALAR, ParallelType::SERIAL>;
-template class KMeans<DistanceKernel::SIMD, ParallelType::SERIAL>;
-template class KMeans<DistanceKernel::CACHE, ParallelType::SERIAL>;
-template class KMeans<DistanceKernel::CACHESIMD, ParallelType::SERIAL>;
-template class KMeans<DistanceKernel::OMPSIMD, ParallelType::SERIAL>;
-template class KMeans<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>;
-template class KMeans<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>;
-template class KMeans<DistanceKernel::CACHE, ParallelType::QUERY_PARALLEL>;
-template class KMeans<DistanceKernel::CACHESIMD, ParallelType::QUERY_PARALLEL>;
-template class KMeans<DistanceKernel::OMPSIMD, ParallelType::QUERY_PARALLEL>;
-template class KMeans<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::SIMD, ParallelType::CANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::CACHESIMD,
-                      ParallelType::CANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::OMPSIMD, ParallelType::CANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::SCALAR, ParallelType::QUERYCANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::SIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::CACHE, ParallelType::QUERYCANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::CACHESIMD,
-                      ParallelType::QUERYCANDIDATE_PARALLEL>;
-template class KMeans<DistanceKernel::OMPSIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
+template class KMeans<DistanceKernel::SCALAR>;
+template class KMeans<DistanceKernel::SIMD>;
+template class KMeans<DistanceKernel::CACHE>;
+template class KMeans<DistanceKernel::CACHESIMD>;
+template class KMeans<DistanceKernel::CACHEV2>;
+template class KMeans<DistanceKernel::CACHESIMDV2>;
+template class KMeans<DistanceKernel::OMPSIMD>;

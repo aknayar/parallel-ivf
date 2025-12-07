@@ -8,8 +8,9 @@ def get_all_indexes(d, nlist):
     return [
         parallel_ivf.IVFBase(d=d, nlist=nlist), 
         parallel_ivf.IVFSIMD(d=d, nlist=nlist),
-        parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist)]
-
+        parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheV2SIMD(d=d, nlist=nlist)
+    ]
 
 def getIndex(name, d, nlist):
     indexes = []

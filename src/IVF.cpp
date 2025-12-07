@@ -67,6 +67,28 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
     }
 
     this->maxlabel = n_train - 1;
+
+    if constexpr (DistanceKernel == DistanceKernel::CACHEV2 ||
+                  DistanceKernel == DistanceKernel::CACHESIMDV2) {
+        // interleave dimensions
+        size_t num_chunks = (this->d + CHUNK_SIZE - 1) / CHUNK_SIZE;
+        for (size_t k = 0; k < this->nlist; k++) {
+            size_t CHUNK_WIDTH = CHUNK_SIZE * this->labels[k].size();
+            std::vector<float> interleaved_data(this->inv_lists[k].size());
+            for (size_t i = 0; i < this->labels[k].size(); i++) {
+                for (size_t j = 0; j < num_chunks; j++) {
+                    size_t real_chunk_size =
+                        std::min<size_t>(CHUNK_SIZE, this->d - j * CHUNK_SIZE);
+                    for (size_t l = 0; l < real_chunk_size; l++) {
+                        interleaved_data[j * CHUNK_WIDTH + i * real_chunk_size + l] =
+                            this->inv_lists[k]
+                                           [i * this->d + j * CHUNK_SIZE + l];
+                    }
+                }
+            }
+            this->inv_lists[k] = interleaved_data;
+        }
+    }
 }
 
 template <DistanceKernel DistanceKernel, ParallelType ParallelType>
@@ -77,9 +99,10 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
     std::vector<std::vector<size_t>> ret_labels;
     ret_labels.resize(n_queries);
 
-
-
-#pragma omp parallel for if (ParallelType == ParallelType::QUERY_PARALLEL ||ParallelType == ParallelType::QUERYCANDIDATE_PARALLEL )
+#pragma omp                                                                    \
+    parallel for if (ParallelType == ParallelType::QUERY_PARALLEL ||           \
+                         ParallelType ==                                       \
+                                 ParallelType::QUERYCANDIDATE_PARALLEL)
     for (size_t i = 0; i < n_queries; i++) {
         const float *q = queries + i * this->d;
         auto bciVec = this->_top_n_centroids(
@@ -98,7 +121,10 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
                 curr_list.size() / this->d; // find number of vectors in list
             auto curr_list_data = curr_list.data();
 
-            if constexpr (ParallelType == ParallelType::CANDIDATE_PARALLEL ||ParallelType == ParallelType::QUERYCANDIDATE_PARALLEL  ) {
+            if constexpr (ParallelType == ParallelType::CANDIDATE_PARALLEL ||
+                          ParallelType ==
+                              ParallelType::QUERYCANDIDATE_PARALLEL) {
+                static_assert(DistanceKernel != DistanceKernel::CACHEV2 && DistanceKernel != DistanceKernel::CACHESIMDV2, "CacheV2 can't be used in candidate-parallel or query-candidate-parallel");
                 std::vector<float> distances(num_vectors_in_list);
 #pragma omp parallel for
                 for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
@@ -117,7 +143,8 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
                 }
             } else {
                 if constexpr (DistanceKernel == DistanceKernel::CACHE ||
-                              DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
+                              DistanceKernel == DistanceKernel::CACHESIMD ||
+                              DistanceKernel == DistanceKernel::OMPSIMD) {
                     float *distances = distance<DistanceKernel>(
                         q, curr_list_data, this->d, num_vectors_in_list);
                     for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
@@ -132,19 +159,47 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
                 }
 
                 else {
-                    for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
-                        const float *vec =
-                            curr_list_data +
-                            vi * this->d; // our current vector within curr_list
-                        auto pq_distance =
-                            distance<DistanceKernel>(q, vec, this->d) *
-                            -1.0; // get distance
-                        auto label =
-                            this->labels[ii]
-                                        [vi]; // get label - find list with ii,
-                                              // find label w/in list with k
-                        auto pair = std::make_pair(pq_distance, label);
-                        pq.push(pair);
+                    if constexpr (DistanceKernel == DistanceKernel::CACHEV2 ||
+                                  DistanceKernel ==
+                                      DistanceKernel::CACHESIMDV2) {
+                        std::vector<float> distances(num_vectors_in_list, 0.0f);
+                        size_t num_chunks = (this->d + CHUNK_SIZE - 1) / CHUNK_SIZE;
+                        const float *q_chunk = q;
+                        const float *curr_list_data_chunk = curr_list_data;
+
+                        // calculate distances
+                        for (size_t c = 0; c < num_chunks; c++) {
+                            size_t real_chunk_size = std::min<size_t>(CHUNK_SIZE, this->d - c * CHUNK_SIZE);
+                            for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
+                                distances[vi] += distance<DistanceKernel>(q_chunk, curr_list_data_chunk, real_chunk_size);
+                                curr_list_data_chunk += real_chunk_size;
+                            }
+                            q_chunk += real_chunk_size;
+                        }
+
+                        // add to result
+                        for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
+                            auto pq_distance = -distances[vi];
+                            auto label = this->labels[ii][vi];
+                            auto pair = std::make_pair(pq_distance, label);
+                            pq.push(pair);
+                        }
+                    } else {
+                        for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
+                            const float *vec =
+                                curr_list_data +
+                                vi * this->d; // our current vector within
+                                              // curr_list
+                            auto pq_distance =
+                                distance<DistanceKernel>(q, vec, this->d) *
+                                -1.0; // get distance
+                            auto label =
+                                this->labels[ii][vi]; // get label - find list
+                                                      // with ii, find label
+                                                      // w/in list with k
+                            auto pair = std::make_pair(pq_distance, label);
+                            pq.push(pair);
+                        }
                     }
                 }
             }
@@ -176,7 +231,8 @@ IVF<DistanceKernel, ParallelType>::_top_n_centroids(const float *vector,
     const float *cent_data = this->centroids.data();
 
     if constexpr (DistanceKernel == DistanceKernel::CACHE ||
-                  DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
+                  DistanceKernel == DistanceKernel::CACHESIMD ||
+                  DistanceKernel == DistanceKernel::OMPSIMD) {
         float *distances =
             distance<DistanceKernel>(vector, cent_data, this->d, this->nlist);
         for (size_t c = 0; c < this->nlist; c++) {
@@ -211,11 +267,15 @@ template class IVF<DistanceKernel::SIMD, ParallelType::SERIAL>;
 template class IVF<DistanceKernel::CACHE, ParallelType::SERIAL>;
 template class IVF<DistanceKernel::CACHESIMD, ParallelType::SERIAL>;
 template class IVF<DistanceKernel::OMPSIMD, ParallelType::SERIAL>;
+template class IVF<DistanceKernel::CACHEV2, ParallelType::SERIAL>;
+template class IVF<DistanceKernel::CACHESIMDV2, ParallelType::SERIAL>;
 
 template class IVF<DistanceKernel::SCALAR, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::SIMD, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::CACHE, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::CACHESIMD, ParallelType::QUERY_PARALLEL>;
+template class IVF<DistanceKernel::CACHEV2, ParallelType::QUERY_PARALLEL>;
+template class IVF<DistanceKernel::CACHESIMDV2, ParallelType::QUERY_PARALLEL>;
 template class IVF<DistanceKernel::OMPSIMD, ParallelType::QUERY_PARALLEL>;
 
 template class IVF<DistanceKernel::SCALAR, ParallelType::CANDIDATE_PARALLEL>;
@@ -224,9 +284,12 @@ template class IVF<DistanceKernel::CACHE, ParallelType::CANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::CACHESIMD, ParallelType::CANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::OMPSIMD, ParallelType::CANDIDATE_PARALLEL>;
 
-template class IVF<DistanceKernel::SCALAR, ParallelType::QUERYCANDIDATE_PARALLEL>;
+template class IVF<DistanceKernel::SCALAR,
+                   ParallelType::QUERYCANDIDATE_PARALLEL>;
 template class IVF<DistanceKernel::SIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
-template class IVF<DistanceKernel::CACHE, ParallelType::QUERYCANDIDATE_PARALLEL>;
-template class IVF<DistanceKernel::CACHESIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
-template class IVF<DistanceKernel::OMPSIMD, ParallelType::QUERYCANDIDATE_PARALLEL>;
-
+template class IVF<DistanceKernel::CACHE,
+                   ParallelType::QUERYCANDIDATE_PARALLEL>;
+template class IVF<DistanceKernel::CACHESIMD,
+                   ParallelType::QUERYCANDIDATE_PARALLEL>;
+template class IVF<DistanceKernel::OMPSIMD,
+                   ParallelType::QUERYCANDIDATE_PARALLEL>;

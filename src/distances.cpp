@@ -198,7 +198,7 @@ float* distance_cache_simd(const float *a, const float *b, size_t d, size_t n){
 template <class T> struct always_false : std::false_type {};
 
 template <DistanceKernel kernel>
-float distance(const float *a, const float *b, size_t d) {
+float distance(const float* __restrict__ a, const float* __restrict__ b, size_t d) {
     if constexpr (kernel == DistanceKernel::SCALAR) {
         return distance_scalar(a, b, d);
     } else if constexpr (kernel == DistanceKernel::SIMD) {
@@ -217,7 +217,7 @@ float distance(const float *a, const float *b, size_t d) {
 }
 
 template <DistanceKernel kernel>
-float *distance(const float *a, const float *b, size_t d, size_t n) {
+float *distance(const float* __restrict__ a, const float* __restrict__ b, size_t d, size_t n) {
     if constexpr (kernel == DistanceKernel::CACHE) {
         return distance_cache(a, b, d, n);
     } else if constexpr (kernel == DistanceKernel::CACHESIMD) {

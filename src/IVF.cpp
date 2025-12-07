@@ -81,7 +81,7 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
 
 #pragma omp parallel for if (ParallelType == ParallelType::QUERY_PARALLEL ||ParallelType == ParallelType::QUERYCANDIDATE_PARALLEL )
     for (size_t i = 0; i < n_queries; i++) {
-        const float *q = queries + i * this->d;
+        const float* __restrict__ q = queries + i * this->d;
         auto bciVec = this->_top_n_centroids(
             q, n_probe); // get indices of nprobe closest centroids
         size_t n_probe_clamped = bciVec.size();
@@ -96,13 +96,13 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
             auto &curr_list = this->inv_lists[ii];
             auto num_vectors_in_list =
                 curr_list.size() / this->d; // find number of vectors in list
-            auto curr_list_data = curr_list.data();
+            const float* __restrict__ curr_list_data = curr_list.data();
 
             if constexpr (ParallelType == ParallelType::CANDIDATE_PARALLEL ||ParallelType == ParallelType::QUERYCANDIDATE_PARALLEL  ) {
                 std::vector<float> distances(num_vectors_in_list);
 #pragma omp parallel for
                 for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
-                    const float *vec =
+                    const float* __restrict__ vec =
                         curr_list_data +
                         vi * this->d; // our current vector within curr_list
                     distances[vi] = distance<DistanceKernel>(q, vec, this->d) *
@@ -118,7 +118,7 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
             } else {
                 if constexpr (DistanceKernel == DistanceKernel::CACHE ||
                               DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
-                    float *distances = distance<DistanceKernel>(
+                    float* __restrict__ distances = distance<DistanceKernel>(
                         q, curr_list_data, this->d, num_vectors_in_list);
                     for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
                         auto pq_distance = -distances[vi];
@@ -133,7 +133,7 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
 
                 else {
                     for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
-                        const float *vec =
+                        const float* __restrict__ vec =
                             curr_list_data +
                             vi * this->d; // our current vector within curr_list
                         auto pq_distance =

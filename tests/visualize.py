@@ -67,7 +67,7 @@ ylabels = ['Time (s)', 'Time (s)', 'Time (s)']
 for metric, title, ylabel in zip(metrics, titles, ylabels):
     plt.figure(figsize=(14, 10))
     plt.yscale('log')
-    plt.ylim(.1 if metric == 'train_time' else 1 if metric == 'query_time' else .9, 100)
+    # plt.ylim(.1 if metric == 'train_time' else 1 if metric == 'query_time' else .9, 100)
     plt.gca().yaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10))
     plt.gca().yaxis.set_minor_locator(matplotlib.ticker.LogLocator(base=10, subs=np.arange(2,10)*0.1))
     plt.gca().yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())

@@ -17,6 +17,7 @@ enum DistanceKernel {
     SIMD,
     CACHE,
     CACHESIMD,
+    OMPSIMD,
 };
 
 // Enum for parallel type
@@ -24,6 +25,7 @@ enum ParallelType {
     SERIAL,
     QUERY_PARALLEL,
     CANDIDATE_PARALLEL,
+    QUERYCANDIDATE_PARALLEL,
 };
 
 // Serial distance kernel (L2 squared)

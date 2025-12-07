@@ -8,10 +8,10 @@ import argparse
 
 from faiss.contrib.datasets import SyntheticDataset
 
-try:
-    from faiss.contrib.datasets_fb import DatasetGIST1M
-except ImportError:
-    from faiss.contrib.datasets import DatasetGIST1M
+# try:
+#     from faiss.contrib.datasets_fb import DatasetGIST1M
+# except ImportError:
+#     from faiss.contrib.datasets import DatasetGIST1M
 
 
 def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
@@ -100,10 +100,10 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     indexes = [
-        "IVFBase",
-        "IVFSIMD",
-        "IVFCache",
-        "IVFCacheSIMD",
+        # "IVFBase",
+        # "IVFSIMD",
+        # "IVFCache",
+        # "IVFCacheSIMD",
         "IVFSIMDQueryParallel",
         "IVFSIMDCandidateParallel",
         "IVFCacheQueryParallel",

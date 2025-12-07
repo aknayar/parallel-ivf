@@ -193,9 +193,6 @@ float* distance_cache_simd(const float *a, const float *b, size_t d, size_t n){
     }
 
     return distances;
-    }
-
-
 }
 
 template <class T> struct always_false : std::false_type {};
@@ -210,6 +207,8 @@ float distance(const float *a, const float *b, size_t d) {
         return distance_scalar(a, b, d);
     } else if constexpr (kernel == DistanceKernel::CACHESIMD) {
         return distance_scalar(a, b, d);
+    } else if constexpr (kernel == DistanceKernel::OMPSIMD){
+        return distance_scalar(a, b, d);
     } else {
         static_assert(
             always_false<std::integral_constant<DistanceKernel, kernel>>::value,
@@ -223,6 +222,8 @@ float *distance(const float *a, const float *b, size_t d, size_t n) {
         return distance_cache(a, b, d, n);
     } else if constexpr (kernel == DistanceKernel::CACHESIMD) {
         return distance_cache_simd(a, b, d, n);
+    } else if constexpr (kernel==DistanceKernel::OMPSIMD){
+        return distance_omp_simd(a, b, d, n);
     } else {
         static_assert(
             always_false<std::integral_constant<DistanceKernel, kernel>>::value,

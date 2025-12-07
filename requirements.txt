@@ -2,3 +2,6 @@ numpy
 scikit-learn
 pytest
 faiss-cpu
+pandas
+matplotlib
+seaborn

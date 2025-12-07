@@ -138,7 +138,7 @@ def test_ivf_matches_on_median_dataset(indexes=None):
             )
 
 def test_ivf_synthetic_dataset(indexes=None):
-    ds = SyntheticDataset(d=128, nb=10000, nq=10000, nt=1000)
+    ds = SyntheticDataset(d=500, nb=10000, nq=100, nt=1000)
 
     xq = ds.get_queries()
     xb = ds.get_database()

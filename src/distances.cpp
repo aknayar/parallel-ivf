@@ -207,6 +207,10 @@ float distance(const float *a, const float *b, size_t d) {
         return distance_scalar(a, b, d);
     } else if constexpr (kernel == DistanceKernel::CACHESIMD) {
         return distance_scalar(a, b, d);
+    } else if constexpr (kernel == DistanceKernel::CACHEV2) {
+        return distance_scalar(a, b, d);
+    } else if constexpr (kernel == DistanceKernel::CACHESIMDV2) {
+        return distance_simd(a, b, d);
     } else if constexpr (kernel == DistanceKernel::OMPSIMD){
         return distance_scalar(a, b, d);
     } else {
@@ -236,6 +240,8 @@ template float distance<DistanceKernel::SCALAR>(const float *, const float *, si
 template float distance<DistanceKernel::SIMD>(const float *, const float *, size_t);
 template float distance<DistanceKernel::CACHE>(const float *, const float *, size_t);
 template float distance<DistanceKernel::CACHESIMD>(const float *, const float *, size_t);
+template float distance<DistanceKernel::CACHEV2>(const float *, const float *, size_t);
+template float distance<DistanceKernel::CACHESIMDV2>(const float *, const float *, size_t);
 template float distance<DistanceKernel::OMPSIMD>(const float *, const float *, size_t);
 template float* distance<DistanceKernel::CACHE>(const float *, const float *, size_t, size_t);
 template float* distance<DistanceKernel::CACHESIMD>(const float *, const float *, size_t, size_t);

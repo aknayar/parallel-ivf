@@ -12,7 +12,7 @@ from faiss.contrib.datasets import SyntheticDataset
 def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
     train_time, build_time, query_time = 0.0, 0.0, 0.0
 
-    NUM_ITERS = 3
+    NUM_ITERS = 1 if len(xb) > 10000 else 5
     os.environ["OMP_NUM_THREADS"] = str(n_threads)
 
     for _ in range(NUM_ITERS):

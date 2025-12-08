@@ -100,7 +100,7 @@ if __name__ == "__main__":
         # "IVFCache",
         # "IVFCacheSIMD",
         # "IVFCacheV2",
-        "IVFCacheV2SIMD",
+        # "IVFCacheV2SIMD",
         # "IVFSIMDQueryParallel",
         # "IVFSIMDCandidateParallel",
         # "IVFCacheQueryParallel",
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         # "IVFCacheV2SIMDQueryParallel",
         # "IVFCacheCandidateParallel",
         # "IVFCacheSIMDCandidateParallel",
-        # "IVFScalarQueryParallel",
+        "IVFScalarQueryParallel",
         # "IVFScalarCandidateParallel"
     ]
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
             threads.append(2 * threads[-1])
         with open(f"results/{dataset}/{dataset}_{index_name}.csv", "w") as f:
             f.write(f"n_threads,train_time,build_time,query_time,qps\n")
-        threads = [1]
+        threads = [128]
         for n_threads in threads:
             print(f"Testing {index_name} with {n_threads} threads...")
             train_time, build_time, query_time, qps = 0, 0, 0, 0

@@ -96,11 +96,11 @@ if __name__ == "__main__":
 
     indexes = [
         # "IVFBase",
-        "IVFSIMD",
+        # "IVFSIMD",
         # "IVFCache",
         # "IVFCacheSIMD",
         # "IVFCacheV2",
-        # "IVFCacheV2SIMD",
+        "IVFCacheV2SIMD",
         # "IVFSIMDQueryParallel",
         # "IVFSIMDCandidateParallel",
         # "IVFCacheQueryParallel",

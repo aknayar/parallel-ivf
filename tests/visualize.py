@@ -38,12 +38,12 @@ plt.rcParams.update(
         "text.usetex": False,
         "font.family": "serif",
         "mathtext.fontset": "cm",
-        "font.size": 22,
-        "axes.labelsize": 26,
+        "font.size": 24,
+        "axes.labelsize": 28,
         "axes.titlesize": 30,
         "legend.fontsize": 22,
-        "xtick.labelsize": 22,
-        "ytick.labelsize": 22,
+        "xtick.labelsize": 24,
+        "ytick.labelsize": 24   ,
     }
 )
 
@@ -146,8 +146,6 @@ for i, (metric, title, ylabel) in enumerate(zip(metrics, titles, ylabels)):
         )
 
     ax.set_title(title)
-    if i == 1:
-        ax.set_xlabel("# Threads")
 
     if i == 0:
         ax.set_ylabel(ylabel)
@@ -181,7 +179,6 @@ for i, (metric, title) in enumerate(zip(metrics, titles)):
             markersize=12,
         )
 
-    ax.set_title(title)
     if i == 1:
         ax.set_xlabel("# Threads")
 
@@ -213,10 +210,10 @@ fig.legend(
     bbox_to_anchor=(0.5, 1.02),
     ncol=5 if mode == 2 else 3 if mode == 1 else 2,
     frameon=False,
-    fontsize=22,
+    fontsize=24,
 )
 
-plt.tight_layout(rect=[0, 0, 1, 0.95 if mode > 0 else .98], w_pad=0.25, h_pad=0.75)
+plt.tight_layout(rect=[0, 0, 1, 0.93 if mode > 0 else .98], w_pad=0.25, h_pad=0.75)
 output_path = os.path.normpath(os.path.join(directory, "../..", "plots", f"{machine}_{dataset}_combined_metrics_{mode}"))
 plt.savefig(output_path + ".pdf", dpi=300, bbox_inches="tight", pad_inches=0.01)
 print(f"Saved plot to {output_path}")

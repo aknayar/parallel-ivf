@@ -8,6 +8,7 @@
 
 #include "distances.h"
 #include <limits>
+#include <chrono>
 #include <queue>
 #include <utility>
 
@@ -106,12 +107,15 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
 
     size_t num_threads = omp_get_max_threads();
 
+    double total_time = 0.0;
+
 #pragma omp                                                                    \
     parallel for if (num_threads > 1 &&                                        \
                          (ParallelType == ParallelType::QUERY_PARALLEL ||      \
                               ParallelType ==                                  \
                                       ParallelType::QUERYCANDIDATE_PARALLEL))
     for (size_t i = 0; i < n_queries; i++) {
+        auto start_time = std::chrono::high_resolution_clock::now();
         const float *q = queries + i * this->d;
         auto bciVec = this->_top_n_centroids(
             q, n_probe); // get indices of nprobe closest centroids
@@ -228,7 +232,11 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
             ret_labels[i].push_back(index);
             pq.pop();
         }
+        auto end_time = std::chrono::high_resolution_clock::now();
+        total_time += std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
     }
+
+    std::cout << "Average time per query: " << total_time / n_queries << "ms" << std::endl;
 
     return ret_labels;
 }

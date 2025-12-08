@@ -22,7 +22,7 @@ def parse_args():
 args = parse_args()
 directory = args.directory
 mode = args.mode
-machine = directory.split("/")[1].split("-")[0]
+machine = directory.replace("../", "").split("/")[0].split("-")[0]
 
 if not os.path.isdir(directory):
     print(f"Error: Directory '{directory}' does not exist.")
@@ -186,6 +186,10 @@ for i, (metric, title) in enumerate(zip(metrics, titles)):
     if i == 0:
         ax.set_ylabel("Speedup (×)")
 
+    max_threads = max(max(data[index_name]["n_threads"]) for index_name in unique_indices)
+    if max_threads == 128:
+        ax.set_xticks([1, 16, 32, 64, 128])
+
     ax.set_ylim(bottom=0)
     ax.axhline(y=1, color='black', linestyle='--', linewidth=2, alpha=0.5, label="Baseline")
     ax.grid(True, linestyle="--", alpha=0.6)
@@ -197,6 +201,7 @@ labels = [
     .replace("Parallel", "Para")
     .replace("Candidate", "C")
     .replace("Query", "Q")
+    .replace("Scalar", "")
     for label in raw_labels
 ]
 fig.legend(
@@ -210,7 +215,7 @@ fig.legend(
 )
 
 plt.tight_layout(rect=[0, 0, 1, 0.95 if mode > 0 else .98], w_pad=0.25, h_pad=0.75)
-output_path = f"../plots/{machine}_{dataset}_combined_metrics_{mode}"
+output_path = os.path.normpath(os.path.join(directory, "../..", "plots", f"{machine}_{dataset}_combined_metrics_{mode}"))
 plt.savefig(output_path + ".pdf", dpi=300, bbox_inches="tight", pad_inches=0.01)
 print(f"Saved plot to {output_path}")
 plt.close()

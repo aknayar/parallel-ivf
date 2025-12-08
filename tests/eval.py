@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
     test_params = TEST_PARAMS[dataset]
     if dataset == "gist":
-        xb, xt, xq  = load_fvecs_data(f"data/gist1M/gist_base.fvecs", f"data/gist1M/gist_learn.fvecs", f"data/gist1M/gist_query.fvecs", test_params["nq"], test_params["nb"], test_params["nt"])
+        xb, xt, xq  = load_fvecs_data(f"data/gist1M/gist_base.fvecs", f"data/gist1M/gist_learn.fvecs", f"data/gist1M/gist_query.fvecs", test_params["nb"], test_params["nt"], test_params["nq"])
     else:
         ds = SyntheticDataset(test_params["d"], test_params["nt"], test_params["nb"], test_params["nq"], seed=1337)
         xt, xb, xq = ds.get_train(), ds.get_database(), ds.get_queries()

@@ -101,16 +101,16 @@ if __name__ == "__main__":
         # "IVFCacheSIMD",
         # "IVFCacheV2",
         # "IVFCacheV2SIMD",
-        "IVFSIMDQueryParallel",
-        "IVFSIMDCandidateParallel",
-        "IVFCacheQueryParallel",
-        "IVFCacheSIMDQueryParallel",
-        "IVFCacheV2QueryParallel",
-        "IVFCacheV2SIMDQueryParallel",
-        "IVFCacheCandidateParallel",
-        "IVFCacheSIMDCandidateParallel",
+        # "IVFSIMDQueryParallel",
+        # "IVFSIMDCandidateParallel",
+        # "IVFCacheQueryParallel",
+        # "IVFCacheSIMDQueryParallel",
+        # "IVFCacheV2QueryParallel",
+        # "IVFCacheV2SIMDQueryParallel",
+        # "IVFCacheCandidateParallel",
+        # "IVFCacheSIMDCandidateParallel",
         "IVFScalarQueryParallel",
-        "IVFScalarCandidateParallel"
+        # "IVFScalarCandidateParallel"
     ]
 
     test_params = TEST_PARAMS[dataset]
@@ -133,6 +133,7 @@ if __name__ == "__main__":
             threads.append(2 * threads[-1])
         with open(f"results/{dataset}/{dataset}_{index_name}.csv", "w") as f:
             f.write(f"n_threads,train_time,build_time,query_time,qps\n")
+        threads = [128]
         for n_threads in threads:
             print(f"Testing {index_name} with {n_threads} threads...")
             train_time, build_time, query_time, qps = 0, 0, 0, 0

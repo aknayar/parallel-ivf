@@ -97,14 +97,16 @@ for file_path in csv_files:
         data[index_name] = df
 
 unique_indices = sorted(data.keys())
-palette = sns.color_palette("colorblind", n_colors=len(unique_indices))
+
+all_indices = sorted(MODES[2])
+palette = sns.color_palette("colorblind", n_colors=len(all_indices))
 
 marker_cycle = itertools.cycle(
     ["o", "s", "D", "^", "v", "<", ">", "p", "*", "h", "X", "d"]
 )
 
 style_map = {}
-for name, color in zip(unique_indices, palette):
+for name, color in zip(all_indices, palette):
     style_map[name] = {"color": color, "marker": next(marker_cycle)}
 
 metrics = ["train_time", "build_time", "query_time"]

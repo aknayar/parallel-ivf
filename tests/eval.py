@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     indexes = [
         # "IVFBase",
-        # "IVFSIMD",
+        "IVFSIMD",
         # "IVFCache",
         # "IVFCacheSIMD",
         # "IVFCacheV2",
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         # "IVFSIMDCandidateParallel",
         # "IVFCacheQueryParallel",
         # "IVFCacheSIMDQueryParallel",
-        "IVFCacheV2QueryParallel",
+        # "IVFCacheV2QueryParallel",
         # "IVFCacheV2SIMDQueryParallel",
         # "IVFCacheCandidateParallel",
         # "IVFCacheSIMDCandidateParallel",

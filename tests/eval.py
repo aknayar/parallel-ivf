@@ -101,7 +101,7 @@ if __name__ == "__main__":
         # "IVFCacheSIMD",
         # "IVFCacheV2",
         # "IVFCacheV2SIMD",
-        # "IVFSIMDQueryParallel",
+        "IVFSIMDQueryParallel",
         # "IVFSIMDCandidateParallel",
         # "IVFCacheQueryParallel",
         # "IVFCacheSIMDQueryParallel",
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         # "IVFCacheV2SIMDQueryParallel",
         # "IVFCacheCandidateParallel",
         # "IVFCacheSIMDCandidateParallel",
-        "IVFScalarQueryParallel",
+        # "IVFScalarQueryParallel",
         # "IVFScalarCandidateParallel"
     ]
 

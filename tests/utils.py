@@ -7,10 +7,22 @@ import parallel_ivf
 def get_all_indexes(d, nlist):
     
     return [
-        parallel_ivf.IVFBase(d=d, nlist=nlist), 
+        parallel_ivf.IVFBase(d=d, nlist=nlist),
         parallel_ivf.IVFSIMD(d=d, nlist=nlist),
+        parallel_ivf.IVFCache(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheSIMD(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheV2(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheV2SIMD(d=d, nlist=nlist),
         parallel_ivf.IVFSIMDQueryParallel(d=d, nlist=nlist),
-        parallel_ivf.IVFCacheV2SIMD(d=d, nlist=nlist)
+        parallel_ivf.IVFSIMDCandidateParallel(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheQueryParallel(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheSIMDQueryParallel(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheV2QueryParallel(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheV2SIMDQueryParallel(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheCandidateParallel(d=d, nlist=nlist),
+        parallel_ivf.IVFCacheSIMDCandidateParallel(d=d, nlist=nlist),
+        parallel_ivf.IVFScalarQueryParallel(d=d, nlist=nlist),
+        parallel_ivf.IVFScalarCandidateParallel(d=d, nlist=nlist)
     ]
 
 def getIndex(name, d, nlist):

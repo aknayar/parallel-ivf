@@ -22,6 +22,7 @@ def parse_args():
 args = parse_args()
 directory = args.directory
 mode = args.mode
+machine = directory.split("/")[1].split("-")[0]
 
 if not os.path.isdir(directory):
     print(f"Error: Directory '{directory}' does not exist.")
@@ -209,8 +210,7 @@ fig.legend(
 )
 
 plt.tight_layout(rect=[0, 0, 1, 0.95 if mode > 0 else .98], w_pad=0.25, h_pad=0.75)
-output_path = os.path.join(directory, f"{dataset}_combined_metrics_{mode}")
-plt.savefig(output_path + ".pdf", dpi=300, bbox_inches="tight", pad_inches=0.1)
-plt.savefig(output_path + ".png", dpi=300, bbox_inches="tight", pad_inches=0.1)
+output_path = f"../plots/{machine}_{dataset}_combined_metrics_{mode}"
+plt.savefig(output_path + ".pdf", dpi=300, bbox_inches="tight", pad_inches=0.01)
 print(f"Saved plot to {output_path}")
 plt.close()

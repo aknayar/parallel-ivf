@@ -233,10 +233,10 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
             pq.pop();
         }
         auto end_time = std::chrono::high_resolution_clock::now();
-        total_time += std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        total_time += std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
     }
 
-    std::cout << "Average time per query: " << total_time / n_queries << "ms" << std::endl;
+    std::cout << "Average time per query: " << total_time / n_queries << "us" << std::endl;
 
     return ret_labels;
 }

@@ -37,7 +37,7 @@ def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
 
 TEST_PARAMS = {
     "easy": {
-        "nq": 100,
+        "nq": 256,
         "nb": 10000,
         "nt": 1000,
         "d": 128,
@@ -46,7 +46,7 @@ TEST_PARAMS = {
         "n_probe": 5
     },
     "medium": {
-        "nq": 100,
+        "nq": 256,
         "nb": 10000,
         "nt": 1000,
         "d": 512,
@@ -55,7 +55,7 @@ TEST_PARAMS = {
         "n_probe": 5
     },
     "hard": {
-        "nq": 100,
+        "nq": 256,
         "nb": 100000,
         "nt": 1000,
         "d": 1024,
@@ -64,7 +64,7 @@ TEST_PARAMS = {
         "n_probe": 25
     },
     "extreme": {
-        "nq": 100,
+        "nq": 256,
         "nb": 1000000,
         "nt": 10000,
         "d": 1024,
@@ -73,7 +73,7 @@ TEST_PARAMS = {
         "n_probe": 25
     },
     "gist": {
-        "nq": 100,
+        "nq": 256,
         "nb": 1000000,
         "nt": 10000,
         "d": 960,

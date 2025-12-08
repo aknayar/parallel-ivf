@@ -77,6 +77,17 @@ MODES = [
         "IVFScalarCandidateParallel",
         "IVFScalarQueryParallel",
     ],
+    [
+        "IVFCacheCandidateParallel",
+        "IVFCacheQueryParallel",
+        "IVFCacheSIMDCandidateParallel",
+        "IVFCacheSIMDQueryParallel",
+    ],
+    [
+        "IVFCacheV2QueryParallel",
+        "IVFCacheV2SIMDQueryParallel",
+    ],
+    
 ]
 
 data = {}

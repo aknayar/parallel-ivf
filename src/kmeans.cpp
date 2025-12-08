@@ -31,6 +31,7 @@ void KMeans<DistanceKernel>::init_centroids(size_t n,
     std::mt19937 gen(RANDOM_SEED);
     std::uniform_real_distribution<float> uniform(0.0f, 1.0f);
     size_t point_bytes = d * sizeof(float);
+    size_t num_threads = omp_get_max_threads();
 
     // 1: Randomly choose the first cluster
     std::uniform_int_distribution<> dis(0, n - 1);
@@ -42,7 +43,7 @@ void KMeans<DistanceKernel>::init_centroids(size_t n,
     while (num_c < k) {
         std::vector<float> dists(n);
 
-#pragma omp parallel for
+#pragma omp parallel for if (num_threads > 1)
         for (size_t i = 0; i < n; i++) {
             const float *pt = data + i * d;
 
@@ -91,6 +92,8 @@ void KMeans<DistanceKernel>::learn_centroids(size_t n,
                                                            size_t nlist) {
     std::vector<std::vector<size_t>> assign(k);
 
+    size_t num_threads = omp_get_max_threads();
+
     bool converged = false;
     while (!converged) {
         // Clear assign
@@ -101,7 +104,7 @@ void KMeans<DistanceKernel>::learn_centroids(size_t n,
         std::vector<size_t> assignments(n);
 
         // Assign points to closest centroids
-#pragma omp parallel for
+#pragma omp parallel for if (num_threads > 1)
         for (size_t i = 0; i < n; i++) {
             if constexpr (DistanceKernel == DistanceKernel::CACHE ||
                           DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
@@ -140,7 +143,7 @@ void KMeans<DistanceKernel>::learn_centroids(size_t n,
 
         // Update centroids
         std::vector<float> new_centroids(k * d);
-#pragma omp parallel for
+#pragma omp parallel for if (num_threads > 1)
         for (size_t i = 0; i < k; i++) {
             const std::vector<size_t> &assignment = assign[i];
             if (assignment.empty()) {

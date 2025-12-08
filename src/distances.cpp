@@ -64,7 +64,8 @@ float distance_simd(const float *a, const float *b, size_t d) {
 
 float* distance_omp_simd(const float *a, const float *b, size_t d, size_t n){
     float* distances = new float[n]();
-    #pragma omp parallel for
+    size_t num_threads = omp_get_max_threads();
+#pragma omp parallel for if (num_threads > 1)
     for(size_t i = 0; i < n; i++){
         distances[i] = distance_simd(a, b+d*i, d);
     }

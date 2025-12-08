@@ -24,6 +24,8 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
                                               const float *train_data) {
     // should include some sort of error handling if centroids not builts
 
+    size_t num_threads = omp_get_max_threads();
+
     if (this->centroids.empty()) {
         return;
     }
@@ -40,7 +42,7 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
 
     std::vector<size_t> labels(n_train);
 
-#pragma omp parallel for
+#pragma omp parallel for if (num_threads > 1)
     for (size_t i = 0; i < n_train; i++) {
         const float *x = train_data + i * this->d;
 
@@ -72,6 +74,8 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
                   DistanceKernel == DistanceKernel::CACHESIMDV2) {
         // interleave dimensions
         size_t num_chunks = (this->d + CHUNK_SIZE - 1) / CHUNK_SIZE;
+
+#pragma omp parallel for if (num_threads > 1)
         for (size_t k = 0; k < this->nlist; k++) {
             size_t CHUNK_WIDTH = CHUNK_SIZE * this->labels[k].size();
             std::vector<float> interleaved_data(this->inv_lists[k].size());
@@ -80,7 +84,8 @@ void IVF<DistanceKernel, ParallelType>::build(const size_t n_train,
                     size_t real_chunk_size =
                         std::min<size_t>(CHUNK_SIZE, this->d - j * CHUNK_SIZE);
                     for (size_t l = 0; l < real_chunk_size; l++) {
-                        interleaved_data[j * CHUNK_WIDTH + i * real_chunk_size + l] =
+                        interleaved_data[j * CHUNK_WIDTH + i * real_chunk_size +
+                                         l] =
                             this->inv_lists[k]
                                            [i * this->d + j * CHUNK_SIZE + l];
                     }
@@ -99,10 +104,13 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
     std::vector<std::vector<size_t>> ret_labels;
     ret_labels.resize(n_queries);
 
+    size_t num_threads = omp_get_max_threads();
+
 #pragma omp                                                                    \
-    parallel for if (ParallelType == ParallelType::QUERY_PARALLEL ||           \
-                         ParallelType ==                                       \
-                                 ParallelType::QUERYCANDIDATE_PARALLEL)
+    parallel for if (num_threads > 1 &&                                        \
+                         (ParallelType == ParallelType::QUERY_PARALLEL ||      \
+                              ParallelType ==                                  \
+                                      ParallelType::QUERYCANDIDATE_PARALLEL))
     for (size_t i = 0; i < n_queries; i++) {
         const float *q = queries + i * this->d;
         auto bciVec = this->_top_n_centroids(
@@ -124,9 +132,12 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
             if constexpr (ParallelType == ParallelType::CANDIDATE_PARALLEL ||
                           ParallelType ==
                               ParallelType::QUERYCANDIDATE_PARALLEL) {
-                static_assert(DistanceKernel != DistanceKernel::CACHEV2 && DistanceKernel != DistanceKernel::CACHESIMDV2, "CacheV2 can't be used in candidate-parallel or query-candidate-parallel");
+                static_assert(DistanceKernel != DistanceKernel::CACHEV2 &&
+                                  DistanceKernel != DistanceKernel::CACHESIMDV2,
+                              "CacheV2 can't be used in candidate-parallel or "
+                              "query-candidate-parallel");
                 std::vector<float> distances(num_vectors_in_list);
-#pragma omp parallel for
+#pragma omp parallel for if (num_threads > 1)
                 for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
                     const float *vec =
                         curr_list_data +
@@ -163,15 +174,20 @@ IVF<DistanceKernel, ParallelType>::search(const size_t n_queries,
                                   DistanceKernel ==
                                       DistanceKernel::CACHESIMDV2) {
                         std::vector<float> distances(num_vectors_in_list, 0.0f);
-                        size_t num_chunks = (this->d + CHUNK_SIZE - 1) / CHUNK_SIZE;
+                        size_t num_chunks =
+                            (this->d + CHUNK_SIZE - 1) / CHUNK_SIZE;
                         const float *q_chunk = q;
                         const float *curr_list_data_chunk = curr_list_data;
 
                         // calculate distances
                         for (size_t c = 0; c < num_chunks; c++) {
-                            size_t real_chunk_size = std::min<size_t>(CHUNK_SIZE, this->d - c * CHUNK_SIZE);
-                            for (size_t vi = 0; vi < num_vectors_in_list; vi++) {
-                                distances[vi] += distance<DistanceKernel>(q_chunk, curr_list_data_chunk, real_chunk_size);
+                            size_t real_chunk_size = std::min<size_t>(
+                                CHUNK_SIZE, this->d - c * CHUNK_SIZE);
+                            for (size_t vi = 0; vi < num_vectors_in_list;
+                                 vi++) {
+                                distances[vi] += distance<DistanceKernel>(
+                                    q_chunk, curr_list_data_chunk,
+                                    real_chunk_size);
                                 curr_list_data_chunk += real_chunk_size;
                             }
                             q_chunk += real_chunk_size;

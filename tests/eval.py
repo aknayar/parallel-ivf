@@ -24,13 +24,12 @@ def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
 
     for _ in range(NUM_ITERS):
         t2 = time.time()
-        
         index.search(xq, k=k, nprobe=n_probe)
         t3 = time.time()
         
         query_time += t3-t2
     
-    build_time /= NUM_ITERS
+    query_time /= NUM_ITERS
     qps = nq / query_time
 
     return train_time, build_time, query_time, qps

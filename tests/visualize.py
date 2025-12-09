@@ -141,7 +141,7 @@ METRIC_MAP = {
 
 # Row 1: Time
 for i, (metric, title, ylabel) in enumerate(zip(metrics, titles, ylabels)):
-    base_time, best_time = -1.0, float("inf")
+    base_time, best_time = float("inf"), float("inf")
     base_index, best_index = "None", "None"
     best_threads = -1
 

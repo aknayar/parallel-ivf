@@ -1,4 +1,4 @@
-metric,base_time,base_index,best_time,best_index,max speedup
-train_time,0.0493041515350341,CPara,0.0029434204101562,SIMDQPara,16.750631804043802
-build_time,0.013864517211914,CPara,0.0018610000610351,QPara,7.450035871682061
-query_time,0.1637292861938476,QPara,0.0032076835632324,CacheV2QPara,51.04284227738995
+Metric,Base Index,Best Index,\# Threads,Max Speedup (×)
+Train,CPara,SIMDQPara,16,16.750631804043802
+Build,CPara,QPara,64,7.450035871682061
+Query,QPara,CacheV2QPara,64,51.04284227738995

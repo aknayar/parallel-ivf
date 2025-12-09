@@ -133,10 +133,17 @@ fig, axes = plt.subplots(2, 3, figsize=(20, 12))
 
 table_data = []
 
+METRIC_MAP = {
+    "train_time": "Train",
+    "build_time": "Build",
+    "query_time": "Query",
+}
+
 # Row 1: Time
 for i, (metric, title, ylabel) in enumerate(zip(metrics, titles, ylabels)):
     base_time, best_time = -1.0, float("inf")
     base_index, best_index = "None", "None"
+    best_threads = -1
 
     ax = axes[0, i]
     ax.set_yscale("log")
@@ -167,23 +174,25 @@ for i, (metric, title, ylabel) in enumerate(zip(metrics, titles, ylabels)):
 
         if index_name in ["IVFScalarCandidateParallel", "IVFScalarQueryParallel"]:
              val = df[df["n_threads"] == 1][metric].values
-             if len(val) > 0 and val[0] > base_time:
+             if len(val) > 0 and val[0] < base_time:
                  base_time, base_index = val[0], index_name
         
-        min_val = df[metric].min()
+        min_idx = df[metric].idxmin()
+        min_val = df.loc[min_idx, metric]
+        min_threads = df.loc[min_idx, "n_threads"]
+        
         if min_val < best_time:
-            best_time, best_index = min_val, index_name
+            best_time, best_index, best_threads = min_val, index_name, min_threads
 
     ax.set_title(title)
 
     if base_time > 0:
         table_data.append({
-            "metric": metric,
-            "base_time": base_time,
-            "base_index": clean_label(base_index),
-            "best_time": best_time,
-            "best_index": clean_label(best_index),
-            "max speedup": base_time / best_time
+            "Metric": METRIC_MAP[metric],
+            "Base Index": clean_label(base_index),
+            "Best Index": clean_label(best_index),
+            "\\# Threads": best_threads,
+            "Max Speedup (×)": base_time / best_time,
         })
 
     if i == 0:

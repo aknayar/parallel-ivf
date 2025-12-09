@@ -12,7 +12,7 @@ from faiss.contrib.datasets import SyntheticDataset
 def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
     train_time, build_time, query_time = 0.0, 0.0, 0.0
 
-    NUM_ITERS = 1 if len(xb) > 10000 else 5
+    NUM_ITERS = 1 if len(xb) > 10000 else 50
     os.environ["OMP_NUM_THREADS"] = str(n_threads)
     t0 = time.time()
     index.train(xt)
@@ -46,16 +46,16 @@ TEST_PARAMS = {
         "n_probe": 5
     },
     "medium": {
-        "nq": 25600,
-        "nb": 10000,
+        "nq": 2560,
+        "nb": 1000,
         "nt": 1000,
-        "d": 512,
+        "d": 2048,
         "nlist": 10,
         "k": 10,
         "n_probe": 5
     },
     "hard": {
-        "nq": 25600,
+        "nq": 2560,
         "nb": 100000,
         "nt": 1000,
         "d": 1024,
@@ -105,8 +105,8 @@ if __name__ == "__main__":
         # "IVFSIMDCandidateParallel",
         # "IVFCacheQueryParallel",
         # "IVFCacheSIMDQueryParallel",
-        # "IVFCacheV2QueryParallel",
-        "IVFCacheV2SIMDQueryParallel",
+        "IVFCacheV2QueryParallel",
+        # "IVFCacheV2SIMDQueryParallel",
         # "IVFCacheCandidateParallel",
         # "IVFCacheSIMDCandidateParallel",
         # "IVFScalarQueryParallel",
@@ -133,7 +133,7 @@ if __name__ == "__main__":
             threads.append(2 * threads[-1])
         with open(f"results/{dataset}/{dataset}_{index_name}.csv", "w") as f:
             f.write(f"n_threads,train_time,build_time,query_time,qps\n")
-        threads = [8]
+        threads = [1]
         for n_threads in threads:
             print(f"Testing {index_name} with {n_threads} threads...")
             train_time, build_time, query_time, qps = 0, 0, 0, 0

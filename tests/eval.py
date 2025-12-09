@@ -37,7 +37,7 @@ def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
 
 TEST_PARAMS = {
     "easy": {
-        "nq": 256,
+        "nq": 25600,
         "nb": 10000,
         "nt": 1000,
         "d": 128,
@@ -46,7 +46,7 @@ TEST_PARAMS = {
         "n_probe": 5
     },
     "medium": {
-        "nq": 256,
+        "nq": 25600,
         "nb": 10000,
         "nt": 1000,
         "d": 512,
@@ -55,7 +55,7 @@ TEST_PARAMS = {
         "n_probe": 5
     },
     "hard": {
-        "nq": 256,
+        "nq": 25600,
         "nb": 100000,
         "nt": 1000,
         "d": 1024,
@@ -64,7 +64,7 @@ TEST_PARAMS = {
         "n_probe": 25
     },
     "extreme": {
-        "nq": 256,
+        "nq": 25600,
         "nb": 1000000,
         "nt": 10000,
         "d": 1024,
@@ -73,7 +73,7 @@ TEST_PARAMS = {
         "n_probe": 25
     },
     "gist": {
-        "nq": 256,
+        "nq": 25600,
         "nb": 1000000,
         "nt": 10000,
         "d": 960,
@@ -133,7 +133,7 @@ if __name__ == "__main__":
             threads.append(2 * threads[-1])
         with open(f"results/{dataset}/{dataset}_{index_name}.csv", "w") as f:
             f.write(f"n_threads,train_time,build_time,query_time,qps\n")
-        threads = [8]
+        threads = [32]
         for n_threads in threads:
             print(f"Testing {index_name} with {n_threads} threads...")
             train_time, build_time, query_time, qps = 0, 0, 0, 0

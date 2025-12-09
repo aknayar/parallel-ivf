@@ -19,6 +19,10 @@ def parse_args():
     return parser.parse_args()
 
 
+def clean_label(label):
+    return label.replace("IVF", "").replace("Parallel", "Para").replace("Candidate", "C").replace("Query", "Q").replace("Scalar", "")
+
+
 args = parse_args()
 directory = args.directory
 mode = args.mode
@@ -176,9 +180,9 @@ for i, (metric, title, ylabel) in enumerate(zip(metrics, titles, ylabels)):
         table_data.append({
             "metric": metric,
             "base_time": base_time,
-            "base_index": base_index,
+            "base_index": clean_label(base_index),
             "best_time": best_time,
-            "best_index": best_index,
+            "best_index": clean_label(best_index),
             "max speedup": base_time / best_time
         })
 
@@ -231,11 +235,7 @@ for i, (metric, title) in enumerate(zip(metrics, titles)):
 # Legend
 handles, raw_labels = axes[0, 0].get_legend_handles_labels()
 labels = [
-    label.replace("IVF", "")
-    .replace("Parallel", "Para")
-    .replace("Candidate", "C")
-    .replace("Query", "Q")
-    .replace("Scalar", "")
+    clean_label(label)
     for label in raw_labels
 ]
 fig.legend(
@@ -254,10 +254,11 @@ plt.savefig(output_path + ".pdf", dpi=300, bbox_inches="tight", pad_inches=0.01)
 print(f"Saved plot to {output_path}")
 plt.close()
 
-tables_dir = os.path.normpath(os.path.join(directory, "../..", "tables"))
-os.makedirs(tables_dir, exist_ok=True)
-output_csv_path = os.path.join(tables_dir, f"{machine}_{dataset}_speedup_table_{mode}.csv")
+if mode == 1:
+    tables_dir = os.path.normpath(os.path.join(directory, "../..", "tables"))
+    os.makedirs(tables_dir, exist_ok=True)
+    output_csv_path = os.path.join(tables_dir, f"{machine}_{dataset}_speedup_table_{mode}.csv")
 
-df_table = pd.DataFrame(table_data)
-df_table.to_csv(output_csv_path, index=False)
-print(f"Saved speedup table to {output_csv_path}")
+    df_table = pd.DataFrame(table_data)
+    df_table.to_csv(output_csv_path, index=False)
+    print(f"Saved speedup table to {output_csv_path}")

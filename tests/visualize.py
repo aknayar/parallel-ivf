@@ -127,8 +127,13 @@ ylabels = ["Time (s)", "Time (s)", "Time (s)"]
 # Combined plot
 fig, axes = plt.subplots(2, 3, figsize=(20, 12))
 
+table_data = []
+
 # Row 1: Time
 for i, (metric, title, ylabel) in enumerate(zip(metrics, titles, ylabels)):
+    base_time, best_time = -1.0, float("inf")
+    base_index, best_index = "None", "None"
+
     ax = axes[0, i]
     ax.set_yscale("log")
     ax.yaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10))
@@ -156,7 +161,26 @@ for i, (metric, title, ylabel) in enumerate(zip(metrics, titles, ylabels)):
             markersize=12,
         )
 
+        if index_name in ["IVFScalarCandidateParallel", "IVFScalarQueryParallel"]:
+             val = df[df["n_threads"] == 1][metric].values
+             if len(val) > 0 and val[0] > base_time:
+                 base_time, base_index = val[0], index_name
+        
+        min_val = df[metric].min()
+        if min_val < best_time:
+            best_time, best_index = min_val, index_name
+
     ax.set_title(title)
+
+    if base_time > 0:
+        table_data.append({
+            "metric": metric,
+            "base_time": base_time,
+            "base_index": base_index,
+            "best_time": best_time,
+            "best_index": best_index,
+            "max speedup": base_time / best_time
+        })
 
     if i == 0:
         ax.set_ylabel(ylabel)
@@ -229,3 +253,11 @@ output_path = os.path.normpath(os.path.join(directory, "../..", "plots", f"{mach
 plt.savefig(output_path + ".pdf", dpi=300, bbox_inches="tight", pad_inches=0.01)
 print(f"Saved plot to {output_path}")
 plt.close()
+
+tables_dir = os.path.normpath(os.path.join(directory, "../..", "tables"))
+os.makedirs(tables_dir, exist_ok=True)
+output_csv_path = os.path.join(tables_dir, f"{machine}_{dataset}_speedup_table_{mode}.csv")
+
+df_table = pd.DataFrame(table_data)
+df_table.to_csv(output_csv_path, index=False)
+print(f"Saved speedup table to {output_csv_path}")

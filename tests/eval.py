@@ -14,21 +14,22 @@ def test(index, nq, xb, xt, xq, k, n_probe, n_threads):
 
     NUM_ITERS = 1 if len(xb) > 10000 else 5
     os.environ["OMP_NUM_THREADS"] = str(n_threads)
+    t0 = time.time()
+    index.train(xt)
+    t1 = time.time()
+    index.build(xb)
+    t2 = time.time()
+    train_time += t1-t0
+    build_time += t2-t1
 
     for _ in range(NUM_ITERS):
-        t0 = time.time()
-        index.train(xt)
-        t1 = time.time()
-        index.build(xb)
         t2 = time.time()
+        
         index.search(xq, k=k, nprobe=n_probe)
         t3 = time.time()
-        train_time += t1-t0
-        build_time += t2-t1
+        
         query_time += t3-t2
     
-    train_time /= NUM_ITERS
-    query_time /= NUM_ITERS
     build_time /= NUM_ITERS
     qps = nq / query_time
 

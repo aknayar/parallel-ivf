@@ -1,4 +1,4 @@
 Metric,Base Index,Best Index,\# Threads,Max Speedup (×)
-Train,CPara,SIMDQPara,16,16.750631804043802
-Build,CPara,QPara,64,7.450035871682061
-Query,QPara,CacheV2QPara,64,51.04284227738995
+Train,QPara,SIMDQPara,16,16.708835536547692
+Build,QPara,QPara,64,7.412498718868726
+Query,CPara,CacheV2QPara,64,43.804355581983344

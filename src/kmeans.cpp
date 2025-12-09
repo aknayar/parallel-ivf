@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <numeric>
 #include <random>
 
@@ -16,17 +15,14 @@
 
 template <DistanceKernel DistanceKernel>
 void KMeans<DistanceKernel>::train(size_t n, const float *data,
-                                                 float *centroids,
-                                                 size_t nlist) {
+                                   float *centroids, size_t nlist) {
     init_centroids(n, data, centroids, nlist);
     learn_centroids(n, data, centroids, nlist);
 }
 
 template <DistanceKernel DistanceKernel>
-void KMeans<DistanceKernel>::init_centroids(size_t n,
-                                                          const float *data,
-                                                          float *centroids,
-                                                          size_t nlist) {
+void KMeans<DistanceKernel>::init_centroids(size_t n, const float *data,
+                                            float *centroids, size_t nlist) {
     // Following https://en.wikipedia.org/wiki/K-means%2B%2B
     std::mt19937 gen(RANDOM_SEED);
     std::uniform_real_distribution<float> uniform(0.0f, 1.0f);
@@ -48,7 +44,8 @@ void KMeans<DistanceKernel>::init_centroids(size_t n,
             const float *pt = data + i * d;
 
             if constexpr (DistanceKernel == DistanceKernel::CACHE ||
-                          DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
+                          DistanceKernel == DistanceKernel::CACHESIMD ||
+                          DistanceKernel == DistanceKernel::OMPSIMD) {
                 float *distances =
                     distance<DistanceKernel>(pt, centroids, d, num_c);
                 float min_dist = distances[0];
@@ -86,10 +83,8 @@ void KMeans<DistanceKernel>::init_centroids(size_t n,
 }
 
 template <DistanceKernel DistanceKernel>
-void KMeans<DistanceKernel>::learn_centroids(size_t n,
-                                                           const float *data,
-                                                           float *centroids,
-                                                           size_t nlist) {
+void KMeans<DistanceKernel>::learn_centroids(size_t n, const float *data,
+                                             float *centroids, size_t nlist) {
     std::vector<std::vector<size_t>> assign(k);
 
     size_t num_threads = omp_get_max_threads();
@@ -107,7 +102,8 @@ void KMeans<DistanceKernel>::learn_centroids(size_t n,
 #pragma omp parallel for if (num_threads > 1)
         for (size_t i = 0; i < n; i++) {
             if constexpr (DistanceKernel == DistanceKernel::CACHE ||
-                          DistanceKernel == DistanceKernel::CACHESIMD || DistanceKernel == DistanceKernel::OMPSIMD) {
+                          DistanceKernel == DistanceKernel::CACHESIMD ||
+                          DistanceKernel == DistanceKernel::OMPSIMD) {
                 const float *pt = data + i * d;
                 size_t c_idx = 0;
                 float *distances =

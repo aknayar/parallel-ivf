@@ -7,7 +7,6 @@
 #include "IVF.h"
 
 #include "distances.h"
-#include <limits>
 #include <queue>
 #include <utility>
 

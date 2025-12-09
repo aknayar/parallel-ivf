@@ -21,9 +21,11 @@ template <DistanceKernel DistanceKernel> struct KMeans {
   private:
     size_t d, k;
 
-    void init_centroids(size_t n, const float *data, float *centroids, size_t nlist);
+    void init_centroids(size_t n, const float *data, float *centroids,
+                        size_t nlist);
 
-    void learn_centroids(size_t n, const float *data, float *centroids, size_t nlist);
+    void learn_centroids(size_t n, const float *data, float *centroids,
+                         size_t nlist);
 };
 
 #endif // KMEANS_H

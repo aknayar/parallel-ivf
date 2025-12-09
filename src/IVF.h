@@ -7,11 +7,11 @@
 #ifndef IVF_H
 #define IVF_H
 
+#include "distances.h"
+#include "kmeans.h"
 #include <cstddef>
 #include <iostream>
 #include <vector>
-#include "distances.h"
-#include "kmeans.h"
 
 template <DistanceKernel DistanceKernel, ParallelType ParallelType> struct IVF {
     KMeans<DistanceKernel> kmeans;

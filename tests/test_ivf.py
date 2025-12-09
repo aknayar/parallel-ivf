@@ -1,10 +1,10 @@
+"""Simple pytest comparing our IVF to brute-force kNN"""
+
 import numpy as np
 import pytest
-import sys
-import os
-import time
 from faiss.contrib.datasets import SyntheticDataset
 from utils import *
+
 
 def _make_two_cluster_data():
     """Helper to make two clusters of data for test"""
@@ -18,16 +18,18 @@ def _make_two_cluster_data():
 
 
 def assert_search_results_equal(
-        I_real,
-        I_test,
-        rtol=1e-5,
-        atol=1e-7,
-        otol=1e-3,
-    ):
-        # Allow small tolerance in overlap rate
-        overlap_rate = np.mean(np.array(I_real) == np.array(I_test))
+    I_real,
+    I_test,
+    rtol=1e-5,
+    atol=1e-7,
+    otol=1e-3,
+):
+    # Allow small tolerance in overlap rate
+    overlap_rate = np.mean(np.array(I_real) == np.array(I_test))
 
-        assert overlap_rate > 1 - otol, f"Overlap rate {overlap_rate:.6f} is not > {1-otol:.3f}. "
+    assert (
+        overlap_rate > 1 - otol
+    ), f"Overlap rate {overlap_rate:.6f} is not > {1-otol:.3f}. "
 
 
 def test_ivf_two_cluster_search_and_add(indexes=None):
@@ -35,8 +37,6 @@ def test_ivf_two_cluster_search_and_add(indexes=None):
     data, cluster_a, cluster_b = _make_two_cluster_data()
     n, d = data.shape
     nlist = 2
-
-   
 
     if not indexes:
         indexes = get_all_indexes(d, nlist)
@@ -48,28 +48,33 @@ def test_ivf_two_cluster_search_and_add(indexes=None):
 
         # Query near cluster A
         q_a = np.array([[0.5, 0.0]], dtype=np.float32)
-        results_a = ivf.search(q_a, k=5, nprobe=1)  
+        results_a = ivf.search(q_a, k=5, nprobe=1)
         labels_a = results_a[0]
-        
-        assert all(0 <= lab < 5 for lab in labels_a), f"Cluster A query returned wrong labels: {labels_a}"
+
+        assert all(
+            0 <= lab < 5 for lab in labels_a
+        ), f"Cluster A query returned wrong labels: {labels_a}"
 
         q_a = np.array([[0.5, 0.0]], dtype=np.float32)
-        results_a = ivf.search(q_a, k=5, nprobe=2)  
+        results_a = ivf.search(q_a, k=5, nprobe=2)
         labels_a = results_a[0]
-        
-        assert all(0 <= lab < 5 for lab in labels_a), f"Cluster A query returned wrong labels when n_probe=2: {labels_a}"
 
-        #Query near cluster B
+        assert all(
+            0 <= lab < 5 for lab in labels_a
+        ), f"Cluster A query returned wrong labels when n_probe=2: {labels_a}"
+
+        # Query near cluster B
         q_b = np.array([[9.5, 0.5]], dtype=np.float32)
         results_b = ivf.search(q_b, k=5, nprobe=2)
         labels_b = results_b[0]
-        
-        assert all(5 <= lab < 10 for lab in labels_b), f"Cluster B query returned wrong labels: {labels_b}"
 
+        assert all(
+            5 <= lab < 10 for lab in labels_b
+        ), f"Cluster B query returned wrong labels: {labels_b}"
 
 
 def generate_six_gaussian_clusters_30d():
-    """ Generate 6 distinct gaussian clusters"""
+    """Generate 6 distinct gaussian clusters"""
     rng = np.random.default_rng(123)
 
     means = [-20.0, -10.0, 0.0, 10.0, 20.0, 30.0]
@@ -82,6 +87,7 @@ def generate_six_gaussian_clusters_30d():
 
     data = np.vstack(clusters).astype(np.float32)
     return data, np.array(means, dtype=np.float32)
+
 
 def _bruteforce_nearest_neighbors(data, queries, k):
     """
@@ -96,7 +102,7 @@ def _bruteforce_nearest_neighbors(data, queries, k):
 
 
 def test_ivf_matches_on_median_dataset(indexes=None):
-    
+
     data, means = generate_six_gaussian_clusters_30d()
     n, d = data.shape
 
@@ -133,9 +139,10 @@ def test_ivf_matches_on_median_dataset(indexes=None):
 
         # Compare IVF vs bruteforce for each query
         for qi, (ivf_labels, bf_labels) in enumerate(zip(ivf_results, bf_results)):
-            assert ivf_labels == bf_labels, (
-                f"Mismatch for query {qi}: IVF {ivf_labels} vs brute-force {bf_labels}"
-            )
+            assert (
+                ivf_labels == bf_labels
+            ), f"Mismatch for query {qi}: IVF {ivf_labels} vs brute-force {bf_labels}"
+
 
 def test_ivf_synthetic_dataset(indexes=None):
     ds = SyntheticDataset(d=500, nb=10000, nq=100, nt=1000)
@@ -164,7 +171,6 @@ def test_ivf_synthetic_dataset(indexes=None):
 
         # Compare IVF vs bruteforce for each query
         assert_search_results_equal(ivf_results, bf_results, otol=0.01)
-
 
 
 if __name__ == "__main__":

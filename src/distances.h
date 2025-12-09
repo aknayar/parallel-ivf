@@ -8,8 +8,8 @@
 #define DISTANCES_H
 
 #include <cstddef>
-#include <vector>
 #include <omp.h>
+#include <vector>
 
 #define CHUNK_SIZE 16
 
@@ -42,6 +42,6 @@ template <DistanceKernel kernel>
 float distance(const float *a, const float *b, size_t d);
 
 template <DistanceKernel kernel>
-float* distance(const float *a, const float *b, size_t d, size_t n);
+float *distance(const float *a, const float *b, size_t d, size_t n);
 
 #endif // DISTANCES_H

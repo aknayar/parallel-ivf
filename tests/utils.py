@@ -1,11 +1,13 @@
 import sys
 import os
 import numpy as np
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../build'))
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../build"))
 import parallel_ivf
 
+
 def get_all_indexes(d, nlist):
-    
+
     return [
         parallel_ivf.IVFBase(d=d, nlist=nlist),
         parallel_ivf.IVFSIMD(d=d, nlist=nlist),
@@ -22,12 +24,13 @@ def get_all_indexes(d, nlist):
         parallel_ivf.IVFCacheCandidateParallel(d=d, nlist=nlist),
         parallel_ivf.IVFCacheSIMDCandidateParallel(d=d, nlist=nlist),
         parallel_ivf.IVFScalarQueryParallel(d=d, nlist=nlist),
-        parallel_ivf.IVFScalarCandidateParallel(d=d, nlist=nlist)
+        parallel_ivf.IVFScalarCandidateParallel(d=d, nlist=nlist),
     ]
+
 
 def getIndex(name, d, nlist):
     indexes = []
-    
+
     if "IVFBase" == name:
         indexes.append(parallel_ivf.IVFBase(d=d, nlist=nlist))
     if "IVFSIMD" == name:
@@ -65,7 +68,9 @@ def getIndex(name, d, nlist):
     if "IVFCacheCandidateParallel" == name:
         indexes.append(parallel_ivf.IVFCacheCandidateParallel(d=d, nlist=nlist))
     if "IVFCacheSIMDQueryCandidateParallel" == name:
-        indexes.append(parallel_ivf.IVFCacheSIMDQueryCandidateParallel(d=d, nlist=nlist))
+        indexes.append(
+            parallel_ivf.IVFCacheSIMDQueryCandidateParallel(d=d, nlist=nlist)
+        )
     if "IVFCacheSIMDCandidateParallel" == name:
         indexes.append(parallel_ivf.IVFCacheSIMDCandidateParallel(d=d, nlist=nlist))
     if "IVFScalarQueryParallel" == name:
@@ -82,32 +87,34 @@ def getIndex(name, d, nlist):
         indexes.append(parallel_ivf.IVFOMPSIMDQueryCandidateParallel(d=d, nlist=nlist))
     return indexes
 
+
 def read_fvecs(filename, n_max=None):
     if not os.path.exists(filename):
         raise FileNotFoundError(f"File not found: {filename}")
 
-    with open(filename, 'rb') as f:
+    with open(filename, "rb") as f:
         dim_header = np.fromfile(f, dtype=np.int32, count=1)
-        
+
         if dim_header.size == 0:
             return np.array([], dtype=np.float32)
-            
+
         d = dim_header[0]
         f.seek(0)
         row_width = d + 1
-        
+
         count = -1
         if n_max is not None:
             count = n_max * row_width
-            
+
         data = np.fromfile(f, dtype=np.float32, count=count)
 
     data = data.reshape(-1, row_width)
-    return data[:, 1:].copy() 
+    return data[:, 1:].copy()
+
 
 def load_fvecs_data(base_path, learn_path, query_path, nb=None, nt=None, nq=None):
     xb = read_fvecs(base_path, n_max=nb)
-    xt = read_fvecs(learn_path, n_max=nt)    
+    xt = read_fvecs(learn_path, n_max=nt)
     xq = read_fvecs(query_path, n_max=nq)
 
     return xb, xt, xq

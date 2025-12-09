@@ -20,7 +20,13 @@ def parse_args():
 
 
 def clean_label(label):
-    return label.replace("IVF", "").replace("Parallel", "Para").replace("Candidate", "C").replace("Query", "Q").replace("Scalar", "")
+    return (
+        label.replace("IVF", "")
+        .replace("Parallel", "Para")
+        .replace("Candidate", "C")
+        .replace("Query", "Q")
+        .replace("Scalar", "")
+    )
 
 
 args = parse_args()
@@ -47,7 +53,7 @@ plt.rcParams.update(
         "axes.titlesize": 30,
         "legend.fontsize": 22,
         "xtick.labelsize": 24,
-        "ytick.labelsize": 24   ,
+        "ytick.labelsize": 24,
     }
 )
 
@@ -91,7 +97,6 @@ MODES = [
         "IVFCacheV2QueryParallel",
         "IVFCacheV2SIMDQueryParallel",
     ],
-    
 ]
 
 data = {}
@@ -173,27 +178,29 @@ for i, (metric, title, ylabel) in enumerate(zip(metrics, titles, ylabels)):
         )
 
         if index_name in ["IVFScalarCandidateParallel", "IVFScalarQueryParallel"]:
-             val = df[df["n_threads"] == 1][metric].values
-             if len(val) > 0 and val[0] < base_time:
-                 base_time, base_index = val[0], index_name
-        
+            val = df[df["n_threads"] == 1][metric].values
+            if len(val) > 0 and val[0] < base_time:
+                base_time, base_index = val[0], index_name
+
         min_idx = df[metric].idxmin()
         min_val = df.loc[min_idx, metric]
         min_threads = df.loc[min_idx, "n_threads"]
-        
+
         if min_val < best_time:
             best_time, best_index, best_threads = min_val, index_name, min_threads
 
     ax.set_title(title)
 
     if base_time > 0:
-        table_data.append({
-            "Metric": METRIC_MAP[metric],
-            "Base Index": clean_label(base_index),
-            "Best Index": clean_label(best_index),
-            "\\# Threads": best_threads,
-            "Max Speedup (×)": base_time / best_time,
-        })
+        table_data.append(
+            {
+                "Metric": METRIC_MAP[metric],
+                "Base Index": clean_label(base_index),
+                "Best Index": clean_label(best_index),
+                "\\# Threads": best_threads,
+                "Max Speedup (×)": base_time / best_time,
+            }
+        )
 
     if i == 0:
         ax.set_ylabel(ylabel)
@@ -233,20 +240,21 @@ for i, (metric, title) in enumerate(zip(metrics, titles)):
     if i == 0:
         ax.set_ylabel("Speedup (×)")
 
-    max_threads = max(max(data[index_name]["n_threads"]) for index_name in unique_indices)
+    max_threads = max(
+        max(data[index_name]["n_threads"]) for index_name in unique_indices
+    )
     if max_threads == 128:
         ax.set_xticks([1, 16, 32, 64, 128])
 
     ax.set_ylim(bottom=0)
-    ax.axhline(y=1, color='black', linestyle='--', linewidth=2, alpha=0.5, label="Baseline")
+    ax.axhline(
+        y=1, color="black", linestyle="--", linewidth=2, alpha=0.5, label="Baseline"
+    )
     ax.grid(True, linestyle="--", alpha=0.6)
 
 # Legend
 handles, raw_labels = axes[0, 0].get_legend_handles_labels()
-labels = [
-    clean_label(label)
-    for label in raw_labels
-]
+labels = [clean_label(label) for label in raw_labels]
 fig.legend(
     handles,
     labels,
@@ -257,8 +265,12 @@ fig.legend(
     fontsize=24,
 )
 
-plt.tight_layout(rect=[0, 0, 1, 0.93 if mode > 0 else .98], w_pad=0.25, h_pad=0.75)
-output_path = os.path.normpath(os.path.join(directory, "../..", "plots", f"{machine}_{dataset}_combined_metrics_{mode}"))
+plt.tight_layout(rect=[0, 0, 1, 0.93 if mode > 0 else 0.98], w_pad=0.25, h_pad=0.75)
+output_path = os.path.normpath(
+    os.path.join(
+        directory, "../..", "plots", f"{machine}_{dataset}_combined_metrics_{mode}"
+    )
+)
 plt.savefig(output_path + ".pdf", dpi=300, bbox_inches="tight", pad_inches=0.01)
 print(f"Saved plot to {output_path}")
 plt.close()
@@ -266,7 +278,9 @@ plt.close()
 if mode == 1:
     tables_dir = os.path.normpath(os.path.join(directory, "../..", "tables"))
     os.makedirs(tables_dir, exist_ok=True)
-    output_csv_path = os.path.join(tables_dir, f"{machine}_{dataset}_speedup_table_{mode}.csv")
+    output_csv_path = os.path.join(
+        tables_dir, f"{machine}_{dataset}_speedup_table_{mode}.csv"
+    )
 
     df_table = pd.DataFrame(table_data)
     df_table.to_csv(output_csv_path, index=False)
